@@ -72,6 +72,7 @@ const clientModel = new Schema({
         },
         isPt: {
             type: Boolean,
+            default: false
         },
         PTDetails: {
             ptfees: {

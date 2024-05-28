@@ -8,7 +8,7 @@ router.post("/register", register);
 
 router.post("/login", login);
 
-router.post('/create-client', verifyJWT,createClient);
+router.post('/create-client',createClient);
 
 router.get('/get-client/:id', verifyJWT, getClientById);
 

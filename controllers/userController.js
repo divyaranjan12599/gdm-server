@@ -71,7 +71,80 @@ export const login = async (req, res) => {
 
 export const createClient = async (req, res) => {
     try {
-        const { email, id } = req.body;
+        const {
+            id,
+            clientName,
+            email,
+            contactNumber,
+            picUrl,
+            address1,
+            address2,
+            city,
+            state,
+            zip,
+            gender,
+            joiningDate,
+            idProofType,
+            idProofNumber,
+            idProofFront,
+            idProofBack,
+            emergencyContactName,
+            emergencyContactNumber,
+            registrationFees,
+            membershipPeriod,
+            membershipAmount,
+            amountPaid,
+            amountRemaining,
+            dueDate,
+            paymentMode,
+            transactionId,
+            ptFees,
+            ptMembershipPeriod,
+            ptAssignedTo
+        } = req.body;
+
+        const clientData = {
+            id: id,
+            name: clientName,
+            contact: contactNumber,
+            email: email,
+            gender: gender,
+            photoUrl: picUrl,
+            address: {
+                areaDetails: `${address1} ${address2}`,
+                city: city,
+                state: state,
+                pincode: zip
+            },
+            idproof: {
+                type: idProofType,
+                frontPicUrl: idProofFront,
+                backPicUrl: idProofBack
+            },
+            emergencyContact: {
+                name: emergencyContactName,
+                contact: emergencyContactNumber
+            },
+            joiningdate: joiningDate,
+            membership: {
+                membershipPeriod: membershipPeriod,
+                membershipAmount: parseFloat(membershipAmount),
+                isPt: ptFees !== '00.00',
+                PTDetails: {
+                    ptfees: parseFloat(ptFees),
+                    ptPeriod: ptMembershipPeriod,
+                    assignedTo: ptAssignedTo
+                }
+            },
+            paymentDetails: {
+                amountPaid: parseFloat(amountPaid),
+                mode: paymentMode,
+                amountRemaining: parseFloat(amountRemaining),
+                dueDate: dueDate,
+                transactionId: transactionId
+            }
+        };
+
         const existingClientById = await Client.findOne({ id });
         if (existingClientById) {
             return res.status(400).json({ message: "Client with this ID already exists" });
@@ -80,7 +153,7 @@ export const createClient = async (req, res) => {
         if (existingClientByEmail) {
             return res.status(400).json({ message: "Client with this email already exists" });
         }
-        const client = new Client(req.body);
+        const client = new Client(clientData);
         await client.save();
         res.status(201).json({ message: "client created ", client });
     } catch (error) {
