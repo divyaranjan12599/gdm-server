@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 
-const appoitmentModel = new Schema({
+const userModel = new Schema({
     gymTitle: {
         type: String,
         required: true
@@ -31,5 +31,5 @@ const appoitmentModel = new Schema({
 
 }, { timeStamp: true });
 
-const Appointment = model("Appointment", appoitmentModel);
-export default Appointment;
+const User = model("User", userModel);
+export default User;
