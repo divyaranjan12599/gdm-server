@@ -44,6 +44,9 @@ const staffModel = new Schema({
             type: String,
             enum: Object.values(IdProofAccepted),
         },
+        number: {
+            type: String
+        },
         frontPicUrl: {
             type: String,
         },

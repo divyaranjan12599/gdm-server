@@ -3,16 +3,19 @@ import { Gender, IdProofAccepted, MembershipPeriod, PaymentMethod } from "./enum
 
 const clientModel = new Schema({
     id: {
-        type: Number
+        type: Number,
+        unique: true
     },
     name: {
         type: String
     },
     contact: {
-        type: String
+        type: String,
+        unique: true
     },
     email: {
-        type: String
+        type: String,
+        unique: true
     },
     gender: {
         type: String,
@@ -44,6 +47,9 @@ const clientModel = new Schema({
             type: String,
             enum: Object.values(IdProofAccepted),
         },
+        number: {
+            type: String
+        },
         frontPicUrl: {
             type: String,
         },
@@ -63,6 +69,9 @@ const clientModel = new Schema({
         type: String
     },
     membership: {
+        registrationFees: {
+            type: Number
+        },
         membershipPeriod: {
             type: String,
             enum: Object.values(MembershipPeriod)
@@ -83,7 +92,8 @@ const clientModel = new Schema({
                 enum: Object.values(MembershipPeriod)
             },
             assignedTo: {
-                // type: StaffModel
+                type: Schema.Types.ObjectId,
+                ref: "Staff"
             }
         }
     },

@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { MembershipPeriod, SourceOfEquiry} from "./enums.js";
+import { Gender, MembershipPeriod, SourceOfEquiry } from "./enums.js";
 
 const enquiryModel = new Schema({
     id: {
@@ -36,17 +36,18 @@ const enquiryModel = new Schema({
         type: String
     },
     enquiredFor: {
-        type: [toString]
+        type: [String]
     },
     intrestedOn: {
         type: String,
         enum: Object.values(MembershipPeriod)
     },
-    attainBy:{
-        type: Object
+    attainBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Staff"
     },
-    comment:{
-        type:String
+    comment: {
+        type: String
     }
 }, { timeStamp: true });
 

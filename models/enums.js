@@ -1,5 +1,6 @@
 export const MembershipPeriod = {
     MONTHLY: 'monthly',
+    TWOMONTHS: 'twomonths',
     QUARTERLY: 'quarterly',
     HALFYEARLY: 'halfyearly',
     YEARLY: 'yearly',
