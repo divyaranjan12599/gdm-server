@@ -430,7 +430,7 @@ export const getEnqById = async (req, res) => {
 
 export const getAllEnq = async (req, res) => {
     try {
-        const enquirys = await Staff.find({}).sort({ enquiryDate: 1 });
+        const enquirys = await Enquiry.find({}).sort({ enquiryDate: 1 });
         if (!enquirys) {
             return res.status(404).json({ message: 'enquiry not found' });
         }
