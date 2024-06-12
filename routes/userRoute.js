@@ -17,7 +17,7 @@ router.get('/get-clients', getAllClient);
 router.put('/update-client/:id',  updateClientById);
 
 router.delete('/delete-client/:id',  deleteClientById);
-
+    
 router.post('/create-staff', createStaff);
 
 router.get('/get-staff/:id',  getStaffById);

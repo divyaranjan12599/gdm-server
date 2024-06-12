@@ -380,7 +380,7 @@ export const createEnq = async (req, res) => {
         // if (existingStaffById) {
         //     return res.status(400).json({ message: "Staff with this ID already exists" });
         // }
-        const attainByStaff = await Staff.findOne({ id: attainedBy });
+        const attainByStaff = await Staff.findById(attainedBy);
         
         if (!attainByStaff) {
             return res.status(400).json({ message: "Staff attained the client is not exist" });
@@ -397,7 +397,7 @@ export const createEnq = async (req, res) => {
             name: visitorName,
             contact: phone,
             email: email,
-            gender: gender.toLowerCase() || 'male',
+            // gender: gender.toLowerCase() || 'male',
             source: source,
             address: address,
             referredBy: referredBy,
@@ -405,7 +405,7 @@ export const createEnq = async (req, res) => {
             lastFollowUpDate: lastFollowUpOn,
             enquiredFor: enquiredFor,
             intrestedOn: interestedOn,
-            attainBy: attainByStaff._id,
+            attainBy: attainByStaff,
             comment: comment
         }
         const enquiry = new Enquiry(enqData);
