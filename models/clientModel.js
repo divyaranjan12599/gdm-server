@@ -98,22 +98,8 @@ const clientModel = new Schema({
         }
     },
     paymentDetails: {
-        amountPaid: {
-            type: Number
-        },
-        mode: {
-            type: String,
-            enum: Object.values(PaymentMethod),
-        },
-        amountRemaining: {
-            type: Number
-        },
-        dueDate: {
-            type: String
-        },
-        transactionId: {
-            type: String,
-        }
+        type: Schema.Types.ObjectId,
+        ref: "PaymentDetail"
     }
 }, { timeStamp: true });
 

@@ -153,6 +153,8 @@ export const createClient = async (req, res) => {
                 state: state,
                 pincode: zip
             },
+            isPt: parseFloat(ptFees) > 0,
+            PTDetails: ptDetails,
             idproof: {
                 type: idProofType,
                 number: idProofNumber,
@@ -431,6 +433,18 @@ export const getEnqById = async (req, res) => {
 export const getAllEnq = async (req, res) => {
     try {
         const enquirys = await Enquiry.find({}).sort({ enquiryDate: 1 });
+        if (!enquirys) {
+            return res.status(404).json({ message: 'enquiry not found' });
+        }
+        res.status(200).json(enquirys);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getPtMembers = async (req, res) => {
+    try {
+        const clients = await Client.find({isPt: true}).sort({ joiningDate: 1 });
         if (!enquirys) {
             return res.status(404).json({ message: 'enquiry not found' });
         }
