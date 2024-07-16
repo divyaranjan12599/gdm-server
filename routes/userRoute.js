@@ -32,7 +32,7 @@ router.post('/create-enquiry', createEnq);
 
 router.get('/get-enquiry/:id', getEnqById);
 
-router.get('/get-enquirys', getAllEnq);
+router.get('/get-enquiries', getAllEnq);
 
 router.put('/update-enquiry/:id', updateEnqById);
 

@@ -383,7 +383,7 @@ export const createEnq = async (req, res) => {
         //     return res.status(400).json({ message: "Staff with this ID already exists" });
         // }
         const attainByStaff = await Staff.findById(attainedBy);
-        
+
         if (!attainByStaff) {
             return res.status(400).json({ message: "Staff attained the client is not exist" });
         }
@@ -432,11 +432,14 @@ export const getEnqById = async (req, res) => {
 
 export const getAllEnq = async (req, res) => {
     try {
-        const enquirys = await Enquiry.find({}).sort({ enquiryDate: 1 });
-        if (!enquirys) {
+        const enquiries = await Enquiry.find({}).sort({ enquiryDate: 1 }).populate('attainBy');
+        if (!enquiries) {
             return res.status(404).json({ message: 'enquiry not found' });
         }
-        res.status(200).json(enquirys);
+        enquiries.forEach(element => {
+            console.log(element.attainBy);
+        });
+        res.status(200).json(enquiries);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -444,11 +447,11 @@ export const getAllEnq = async (req, res) => {
 
 export const getPtMembers = async (req, res) => {
     try {
-        const clients = await Client.find({isPt: true}).sort({ joiningDate: 1 });
-        if (!enquirys) {
+        const clients = await Client.find({ isPt: true }).sort({ joiningDate: 1 });
+        if (!clients) {
             return res.status(404).json({ message: 'enquiry not found' });
         }
-        res.status(200).json(enquirys);
+        res.status(200).json(clients);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -42,6 +42,11 @@ const clientModel = new Schema({
             type: Number
         }
     },
+    renewals:{
+        type: Number,
+        // required: true,
+        default: 0,
+    },
     idproof: {
         type: {
             type: String,
@@ -98,8 +103,22 @@ const clientModel = new Schema({
         }
     },
     paymentDetails: {
-        type: Schema.Types.ObjectId,
-        ref: "PaymentDetail"
+        amountPaid: {
+            type: Number
+        },
+        mode: {
+            type: String,
+            enum: Object.values(PaymentMethod),
+        },
+        amountRemaining: {
+            type: Number
+        },
+        dueDate: {
+            type: String
+        },
+        transactionId: {
+            type: String,
+        }
     }
 }, { timeStamp: true });
 
