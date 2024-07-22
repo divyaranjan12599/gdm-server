@@ -106,7 +106,7 @@ export const createClient = async (req, res) => {
             ptAssignedTo
         } = req.body;
 
-        console.log(req);
+        // console.log(req);
 
         let ptAssignedStaff = null;
 
@@ -135,7 +135,7 @@ export const createClient = async (req, res) => {
         } : null;
 
         const seq = await Sequence.findById('000000000000000000000001');
-        console.log(seq);
+        // console.log(seq);
         const newClientId = seq.clientIdSeq + 1;
         seq.clientIdSeq = newClientId;
         await seq.save();
@@ -203,7 +203,7 @@ export const getClientById = async (req, res) => {
 
 export const getAllClient = async (req, res) => {
     try {
-        const clients = await Client.find({}).sort({ joiningDate: 1 });
+        const clients = await Client.find({}).sort({ joiningDate: 1 }).populate('membership.PTDetails.assignedTo');
         if (!clients) {
             return res.status(404).json({ message: 'Client not found' });
         }
@@ -273,7 +273,7 @@ export const createStaff = async (req, res) => {
         }
 
         const seq = await Sequence.findById('000000000000000000000001');
-        console.log(seq);
+        // console.log(seq);
         const newStaffId = seq.staffIdSeq + 1;
         seq.staffIdSeq = newStaffId;
         await seq.save();
@@ -389,7 +389,7 @@ export const createEnq = async (req, res) => {
         }
 
         const seq = await Sequence.findById('000000000000000000000001');
-        console.log(seq);
+        // console.log(seq);
         const newEnqId = seq.enqIdSeq + 1;
         seq.enqIdSeq = newEnqId;
         await seq.save();
@@ -436,9 +436,6 @@ export const getAllEnq = async (req, res) => {
         if (!enquiries) {
             return res.status(404).json({ message: 'enquiry not found' });
         }
-        enquiries.forEach(element => {
-            console.log(element.attainBy);
-        });
         res.status(200).json(enquiries);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -447,7 +444,11 @@ export const getAllEnq = async (req, res) => {
 
 export const getPtMembers = async (req, res) => {
     try {
-        const clients = await Client.find({ isPt: true }).sort({ joiningDate: 1 });
+        const clients = await Client.find({ isPt: true }).sort({ joiningDate: 1 }).populate('assignedTo');
+        console.log(clients);
+        clients.forEach(client=>{
+            console.log(client.membership.PTDetails.assignedTo);
+        });
         if (!clients) {
             return res.status(404).json({ message: 'enquiry not found' });
         }
