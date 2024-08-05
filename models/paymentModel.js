@@ -1,8 +1,16 @@
 import { model, Schema } from "mongoose";
+import { PaymentMethod } from "./enums.js";
 
 const paymentModel = new Schema({
+    amountPaidBy:{
+        type: Schema.Types.ObjectId,
+        ref: "Client"
+    },
     amountPaid: {
         type: Number
+    },
+    amountPaidOn: {
+        type: String
     },
     mode: {
         type: String,

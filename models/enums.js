@@ -7,8 +7,11 @@ export const MembershipPeriod = {
 };
 
 export const PaymentMethod = {
+    CASH: 'CASH',
+    CREDIT_CARD: 'CREDIT_CARD',
+    DEBIT_CARD: 'DEBIT_CARD',
+    NET_BANKING: 'NET_BANKING',
     ONLINE: 'online',
-    CASH: 'cash'
 }
 
 export const IdProofAccepted = {
