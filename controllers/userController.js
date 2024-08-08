@@ -93,6 +93,7 @@ export const createClient = async (req, res) => {
             idProofNumber,
             idProofFront,
             idProofBack,
+            ptStartingDate,
             emergencyContactName,
             emergencyContactNumber,
             membershipPeriod,
@@ -102,7 +103,7 @@ export const createClient = async (req, res) => {
             amountRemaining,
             dueDate,
             paymentMode,
-            paymentDate,
+            transactionDate,
             transactionId,
             ptFees,
             ptMembershipPeriod,
@@ -134,7 +135,8 @@ export const createClient = async (req, res) => {
         const ptDetails = parseFloat(ptFees) > 0 ? {
             ptfees: parseFloat(ptFees),
             ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
-            assignedTo: ptAssignedStaff
+            assignedTo: ptAssignedStaff,
+            ptStartingDate: ptStartingDate
         } : null;
 
         const seq = await Sequence.findById('000000000000000000000001');
@@ -188,7 +190,7 @@ export const createClient = async (req, res) => {
             amountPaidBy: client,
             amountPaid: parseFloat(amountPaid),
             mode: paymentMode || 'cash',
-            amountPaidOn: paymentDate,
+            amountPaidOn: transactionDate,
             amountRemaining: parseFloat(amountRemaining),
             dueDate: dueDate,
             transactionId: transactionId

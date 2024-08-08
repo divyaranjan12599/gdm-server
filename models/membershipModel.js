@@ -31,6 +31,9 @@ const membershipModel = new Schema({
             type: String,
             enum: Object.values(MembershipPeriod)
         },
+        ptStartingDate: {
+            type: String,
+        },
         assignedTo: {
             type: Schema.Types.ObjectId,
             ref: "Staff"
