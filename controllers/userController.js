@@ -158,8 +158,8 @@ export const createClient = async (req, res) => {
                 state: state,
                 pincode: zip
             },
-            isPt: parseFloat(ptFees) > 0,
-            PTDetails: ptDetails,
+            // isPt: parseFloat(ptFees) > 0,
+            // PTDetails: ptDetails,
             idproof: {
                 type: idProofType,
                 number: idProofNumber,
@@ -253,6 +253,76 @@ export const getAllMembershipsByClientId = async (req, res) => {
         if (!memberships || memberships.length === 0) {
             return res.status(404).json({ message: 'No memberships found for this client' });
         }
+
+        res.status(200).json(memberships);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const updateMembershipByClientId = async (req, res) => {
+    try {
+        const { clientId } = req.params;
+        const {
+            ptStartingDate,
+            membershipPeriod,
+            membershipStartingDate,
+            membershipAmount,
+            amountPaid,
+            amountRemaining,
+            dueDate,
+            paymentMode,
+            transactionDate,
+            transactionId,
+            ptFees,
+            ptMembershipPeriod,
+            ptAssignedTo
+        } = req.body;
+
+        let ptAssignedStaff = null;
+
+        if (ptFees && ptAssignedTo) {
+            ptAssignedStaff = await Staff.findById(ptAssignedTo);
+        }
+
+        const ptDetails = parseFloat(ptFees) > 0 ? {
+            ptfees: parseFloat(ptFees),
+            ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
+            assignedTo: ptAssignedStaff,
+            ptStartingDate: ptStartingDate
+        } : null;
+
+        const updatedClient = await Client.findByIdAndUpdate(
+            clientId,
+            { $inc: { renewals: 1 } },
+            { new: true } // Return the updated document
+        );
+
+        const membershipData = {
+            membershipBy: updatedClient,
+            startingDate: membershipStartingDate,
+            membershipPeriod: membershipPeriod || 'monthly',
+            membershipAmount: parseFloat(membershipAmount),
+            isPt: parseFloat(ptFees) > 0,
+            PTDetails: ptDetails,
+        }
+
+        const membershipDetails = new MembershipDetail(membershipData);
+
+        const paymentDetailsData = {
+            amountPaidBy: client,
+            amountPaid: parseFloat(amountPaid),
+            mode: paymentMode || 'cash',
+            amountPaidOn: transactionDate,
+            amountRemaining: parseFloat(amountRemaining),
+            dueDate: dueDate,
+            transactionId: transactionId
+        }
+
+        const paymentDetails = new PaymentDetail(paymentDetailsData);
+
+        await paymentDetails.save();
+        await membershipDetails.save();
 
         res.status(200).json(memberships);
     } catch (error) {

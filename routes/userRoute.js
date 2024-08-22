@@ -1,5 +1,5 @@
 import express from "express";
-import { createClient, createEnq, createStaff, deleteClientById, deleteEnqById, deleteStaffById, getAllClient, getAllEnq, getAllMemberships, getAllMembershipsByClientId, getAllPaymentDetails, getAllPaymentDetailsByClientId, getAllStaff, getClientById, getEnqById, getStaffById, login, register, updateClientById, updateEnqById, updateStaffById, verifyJWT } from "../controllers/userController.js";
+import { createClient, createEnq, createStaff, deleteClientById, deleteEnqById, deleteStaffById, getAllClient, getAllEnq, getAllMemberships, getAllMembershipsByClientId, getAllPaymentDetails, getAllPaymentDetailsByClientId, getAllStaff, getClientById, getEnqById, getStaffById, login, register, updateClientById, updateEnqById, updateMembershipByClientId, updateStaffById, verifyJWT } from "../controllers/userController.js";
 
 
 const router = express.Router();
@@ -23,6 +23,8 @@ router.get('/get-paymentDetails', getAllPaymentDetails);
 router.get('/get-paymentDetails/:clientId', getAllPaymentDetailsByClientId);
 
 router.put('/update-client/:id', updateClientById);
+
+router.put('/update-membership/:clientId', updateMembershipByClientId);
 
 router.delete('/delete-client/:id', deleteClientById);
 
