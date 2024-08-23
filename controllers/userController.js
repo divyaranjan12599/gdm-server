@@ -263,6 +263,7 @@ export const getAllMembershipsByClientId = async (req, res) => {
 export const updateMembershipByClientId = async (req, res) => {
     try {
         const { clientId } = req.params;
+        console.log("Called mem update")
         const {
             ptStartingDate,
             membershipPeriod,
@@ -324,7 +325,7 @@ export const updateMembershipByClientId = async (req, res) => {
         await paymentDetails.save();
         await membershipDetails.save();
 
-        res.status(200).json(memberships);
+        res.status(200).json(membershipDetails);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
