@@ -310,7 +310,7 @@ export const updateMembershipByClientId = async (req, res) => {
         const membershipDetails = new MembershipDetail(membershipData);
 
         const paymentDetailsData = {
-            amountPaidBy: client,
+            amountPaidBy: updatedClient,
             amountPaid: parseFloat(amountPaid),
             mode: paymentMode || 'cash',
             amountPaidOn: transactionDate,
