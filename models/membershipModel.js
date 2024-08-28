@@ -23,22 +23,6 @@ const membershipModel = new Schema({
         type: Boolean,
         default: false
     },
-    PTDetails: {
-        ptfees: {
-            type: Number
-        },
-        ptPeriod: {
-            type: String,
-            enum: Object.values(MembershipPeriod)
-        },
-        ptStartingDate: {
-            type: String,
-        },
-        assignedTo: {
-            type: Schema.Types.ObjectId,
-            ref: "Staff"
-        }
-    }
 }, { timeStamp: true });
 
 const MembershipDetail = model("Membership", membershipModel);

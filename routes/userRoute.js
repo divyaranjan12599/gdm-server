@@ -1,5 +1,5 @@
 import express from "express";
-import { createClient, createEnq, createStaff, deleteClientById, deleteEnqById, deleteStaffById, getAllClient, getAllEnq, getAllMemberships, getAllMembershipsByClientId, getAllPaymentDetails, getAllPaymentDetailsByClientId, getAllStaff, getClientById, getEnqById, getStaffById, login, register, updateClientById, updateEnqById, updateMembershipByClientId, updateStaffById, verifyJWT } from "../controllers/userController.js";
+import { createClient, createEnq, createPtMembershipByClientId, createPtMembershipByStaffId, createStaff, deleteClientById, deleteEnqById, deleteStaffById, getAllClient, getAllEnq, getAllMemberships, getAllMembershipsByClientId, getAllPaymentDetails, getAllPaymentDetailsByClientId, getAllStaff, getClientById, getEnqById, getStaffById, login, register, updateClientById, updateEnqById, updateMembershipByClientId, updateStaffById, verifyJWT } from "../controllers/userController.js";
 
 
 const router = express.Router();
@@ -34,7 +34,13 @@ router.get('/get-staff/:id', getStaffById);
 
 router.get('/get-staffs', getAllStaff);
 
+router.get('/get-ptDetails', getAllPaymentDetails);
+
 router.put('/update-staff/:id', updateStaffById);
+
+router.post('/create-ptcid/:clientId', createPtMembershipByClientId);
+
+router.post('/create-ptsid/:staffId', createPtMembershipByStaffId);
 
 router.delete('/delete-staff/:id', deleteStaffById);
 

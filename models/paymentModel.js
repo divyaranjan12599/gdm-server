@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { PaymentMethod } from "./enums.js";
+import { PaidFor, PaymentMethod } from "./enums.js";
 
 const paymentModel = new Schema({
     amountPaidBy:{
@@ -11,6 +11,11 @@ const paymentModel = new Schema({
     },
     amountPaidOn: {
         type: String
+    },
+    paidFor: {
+        type: String,
+        enum: Object.values(PaidFor),
+        default: PaidFor.NORMAL
     },
     mode: {
         type: String,

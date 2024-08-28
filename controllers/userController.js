@@ -4,10 +4,12 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Staff from "../models/staffModel.js"
 import Sequence from "../models/sequenceModel.js";
-import { Gender } from "../models/enums.js";
+import { Gender, PaidFor } from "../models/enums.js";
 import Enquiry from "../models/enquiryModel.js";
 import PaymentDetail from "../models/paymentModel.js";
 import MembershipDetail from "../models/membershipModel.js";
+import { capitalizeEachWord } from "../utilityFunctions.js";
+import PTMembershipDetail from "../models/ptDetailsModel.js";
 
 export const verifyJWT = (req, res, next) => {
     const authHeader = req.headers["authorization"];
@@ -78,7 +80,8 @@ export const login = async (req, res) => {
 export const createClient = async (req, res) => {
     try {
         const {
-            clientName,
+            fname,
+            lname,
             email,
             contactNumber,
             picUrl,
@@ -112,12 +115,6 @@ export const createClient = async (req, res) => {
 
         // console.log(req);
 
-        let ptAssignedStaff = null;
-
-        if (ptFees && ptAssignedTo) {
-            ptAssignedStaff = await Staff.findById(ptAssignedTo);
-        }
-
         const existingClientByEmail = await Client.findOne({ email });
         if (existingClientByEmail) {
             return res.status(400).json({ message: "Client with this email already exists" });
@@ -132,13 +129,6 @@ export const createClient = async (req, res) => {
             return res.status(400).json({ message: "Invalid gender" });
         }
 
-        const ptDetails = parseFloat(ptFees) > 0 ? {
-            ptfees: parseFloat(ptFees),
-            ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
-            assignedTo: ptAssignedStaff,
-            ptStartingDate: ptStartingDate
-        } : null;
-
         const seq = await Sequence.findById('000000000000000000000001');
         // console.log(seq);
         const newClientId = seq.clientIdSeq + 1;
@@ -147,7 +137,7 @@ export const createClient = async (req, res) => {
 
         const clientData = {
             id: newClientId, // If you have an auto-increment logic, this should be handled differently
-            name: clientName,
+            name: capitalizeEachWord(fname + ' ' + lname),
             contact: contactNumber,
             email: email,
             gender: gender.toLowerCase() || 'male',
@@ -181,7 +171,19 @@ export const createClient = async (req, res) => {
             membershipPeriod: membershipPeriod || 'monthly',
             membershipAmount: parseFloat(membershipAmount),
             isPt: parseFloat(ptFees) > 0,
-            PTDetails: ptDetails,
+        }
+
+        if (parseFloat(ptFees) > 0) {
+            const ptAssignedStaff = await Staff.findById(ptAssignedTo);
+            const ptDetailsData = {
+                ptBy: client,
+                ptfees: parseFloat(ptFees),
+                ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
+                assignedTo: ptAssignedStaff,
+                ptStartingDate: ptStartingDate
+            };
+            const ptDetails = new PTMembershipDetail(ptDetailsData);
+            await ptDetails.save();
         }
 
         const membershipDetails = new MembershipDetail(membershipData);
@@ -243,12 +245,24 @@ export const getAllMemberships = async (req, res) => {
     }
 };
 
+export const getAllPTMemberships = async (req, res) => {
+    try {
+        const memberships = await PTMembershipDetail.find({}).sort({ startingDate: 1 }).populate('ptTo').populate('assignedTo');
+        if (!memberships) {
+            return res.status(404).json({ message: 'PT Membership details not found' });
+        }
+        res.status(200).json(memberships);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export const getAllMembershipsByClientId = async (req, res) => {
     try {
         const { clientId } = req.params;
 
         // Fetch memberships filtered by client id
-        const memberships = await MembershipDetail.find({ membershipBy: clientId }).sort({ startingDate: 1 }).populate('membershipBy').populate('PTDetails.assignedTo');
+        const memberships = await MembershipDetail.find({ membershipBy: clientId }).sort({ startingDate: 1 }).populate('membershipBy');
 
         if (!memberships || memberships.length === 0) {
             return res.status(404).json({ message: 'No memberships found for this client' });
@@ -263,9 +277,7 @@ export const getAllMembershipsByClientId = async (req, res) => {
 export const updateMembershipByClientId = async (req, res) => {
     try {
         const { clientId } = req.params;
-        console.log("Called mem update")
         const {
-            ptStartingDate,
             membershipPeriod,
             membershipStartingDate,
             membershipAmount,
@@ -275,23 +287,7 @@ export const updateMembershipByClientId = async (req, res) => {
             paymentMode,
             transactionDate,
             transactionId,
-            ptFees,
-            ptMembershipPeriod,
-            ptAssignedTo
         } = req.body;
-
-        let ptAssignedStaff = null;
-
-        if (ptFees && ptAssignedTo) {
-            ptAssignedStaff = await Staff.findById(ptAssignedTo);
-        }
-
-        const ptDetails = parseFloat(ptFees) > 0 ? {
-            ptfees: parseFloat(ptFees),
-            ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
-            assignedTo: ptAssignedStaff,
-            ptStartingDate: ptStartingDate
-        } : null;
 
         const updatedClient = await Client.findByIdAndUpdate(
             clientId,
@@ -305,7 +301,6 @@ export const updateMembershipByClientId = async (req, res) => {
             membershipPeriod: membershipPeriod || 'monthly',
             membershipAmount: parseFloat(membershipAmount),
             isPt: parseFloat(ptFees) > 0,
-            PTDetails: ptDetails,
         }
 
         const membershipDetails = new MembershipDetail(membershipData);
@@ -326,6 +321,106 @@ export const updateMembershipByClientId = async (req, res) => {
         await membershipDetails.save();
 
         res.status(200).json(membershipDetails);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const createPtMembershipByClientId = async (req, res) => {
+    try {
+        const { clientId } = req.params;
+        const {
+            ptStartingDate,
+            ptFees,
+            ptMembershipPeriod,
+            ptAssignedTo,
+            amountPaid,
+            amountRemaining,
+            dueDate,
+            paymentMode,
+            transactionDate,
+            transactionId,
+        } = req.body;
+
+        const client = await Client.findById(clientId);
+
+        const ptAssignedStaff = await Staff.findById(ptAssignedTo);
+        const ptDetailsData = {
+            ptTo: client,
+            ptfees: parseFloat(ptFees),
+            ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
+            assignedTo: ptAssignedStaff,
+            ptStartingDate: ptStartingDate
+        };
+        const ptDetails = new PTMembershipDetail(ptDetailsData);
+        await ptDetails.save();
+
+        const paymentDetailsData = {
+            amountPaidBy: client,
+            amountPaid: parseFloat(amountPaid),
+            mode: paymentMode || 'cash',
+            paidFor: PaidFor.PTMembership,
+            amountPaidOn: transactionDate,
+            amountRemaining: parseFloat(amountRemaining),
+            dueDate: dueDate,
+            transactionId: transactionId
+        }
+
+        const paymentDetails = new PaymentDetail(paymentDetailsData);
+
+        await paymentDetails.save();
+
+        res.status(200).json(ptDetails, paymentDetails);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const createPtMembershipByStaffId = async (req, res) => {
+    try {
+        const { staffId } = req.params;
+        const {
+            ptStartingDate,
+            ptFees,
+            ptMembershipPeriod,
+            ptTo,
+            amountPaid,
+            amountRemaining,
+            dueDate,
+            paymentMode,
+            transactionDate,
+            transactionId,
+        } = req.body;
+
+        const client = await Client.findById(ptTo);
+
+        const ptAssignedStaff = await Staff.findById(staffId);
+        const ptDetailsData = {
+            ptTo: client,
+            ptfees: parseFloat(ptFees),
+            ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
+            assignedTo: ptAssignedStaff,
+            ptStartingDate: ptStartingDate
+        };
+        const ptDetails = new PTMembershipDetail(ptDetailsData);
+        await ptDetails.save();
+
+        const paymentDetailsData = {
+            amountPaidBy: client,
+            amountPaid: parseFloat(amountPaid),
+            mode: paymentMode || 'cash',
+            paidFor: PaidFor.PTMembership,
+            amountPaidOn: transactionDate,
+            amountRemaining: parseFloat(amountRemaining),
+            dueDate: dueDate,
+            transactionId: transactionId
+        }
+
+        const paymentDetails = new PaymentDetail(paymentDetailsData);
+
+        await paymentDetails.save();
+
+        res.status(200).json(ptDetails, paymentDetails);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

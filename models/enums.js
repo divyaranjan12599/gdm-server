@@ -14,6 +14,11 @@ export const PaymentMethod = {
     ONLINE: 'online',
 }
 
+export const PaidFor = {
+    PTMembership: 'pt',
+    NORMAL: 'normal', 
+}
+
 export const IdProofAccepted = {
     ADHAR: 'adhar',
     LICENSE: 'license',
