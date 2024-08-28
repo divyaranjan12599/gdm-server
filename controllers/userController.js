@@ -235,7 +235,7 @@ export const getAllClient = async (req, res) => {
 
 export const getAllMemberships = async (req, res) => {
     try {
-        const memberships = await MembershipDetail.find({}).sort({ startingDate: 1 }).populate('membershipBy').populate('PTDetails.assignedTo');
+        const memberships = await MembershipDetail.find({}).sort({ startingDate: 1 }).populate('membershipBy');
         if (!memberships) {
             return res.status(404).json({ message: 'Membership details not found' });
         }
@@ -675,22 +675,6 @@ export const getAllEnq = async (req, res) => {
             return res.status(404).json({ message: 'enquiry not found' });
         }
         res.status(200).json(enquiries);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-export const getPtMembers = async (req, res) => {
-    try {
-        const clients = await Client.find({ isPt: true }).sort({ joiningDate: 1 }).populate('assignedTo');
-        console.log(clients);
-        clients.forEach(client => {
-            console.log(client.membership.PTDetails.assignedTo);
-        });
-        if (!clients) {
-            return res.status(404).json({ message: 'enquiry not found' });
-        }
-        res.status(200).json(clients);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
