@@ -310,7 +310,7 @@ export const updateMembershipByClientId = async (req, res) => {
             amountPaid: parseFloat(amountPaid),
             mode: paymentMode || 'cash',
             amountPaidOn: transactionDate,
-            amountRemaining: parseFloat(amountRemaining),
+            amountRemaining: parseFloat(amountRemaining || 0),
             dueDate: dueDate,
             transactionId: transactionId
         }
@@ -361,7 +361,7 @@ export const createPtMembershipByClientId = async (req, res) => {
             mode: paymentMode || 'cash',
             paidFor: PaidFor.PTMembership,
             amountPaidOn: transactionDate,
-            amountRemaining: parseFloat(amountRemaining),
+            amountRemaining: parseFloat(amountRemaining || 0),
             dueDate: dueDate,
             transactionId: transactionId
         }
@@ -370,8 +370,9 @@ export const createPtMembershipByClientId = async (req, res) => {
 
         await paymentDetails.save();
 
-        res.status(200).json(ptDetails, paymentDetails);
+        res.status(200).json({pt: ptDetails, payment: paymentDetails});
     } catch (error) {
+        // console.log(error);
         res.status(500).json({ message: error.message });
     }
 };
