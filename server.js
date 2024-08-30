@@ -4,9 +4,6 @@ import cors from 'cors';
 import userRoutes from "./routes/userRoute.js";
 import Sequence from "./models/sequenceModel.js";
 
-
-// require("dotenv").config()
-
 // express app
 const app = express();
 const port = process.env.PORT || 3000
