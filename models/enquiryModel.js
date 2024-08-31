@@ -48,6 +48,10 @@ const enquiryModel = new Schema({
     },
     comment: {
         type: String
+    },
+    belongsTo: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
     }
 }, { timeStamp: true });
 

@@ -21,6 +21,10 @@ const seqModel = new Schema({
         required: true,
         default: 0
     },
+    belongsTo: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }
 }, { timestamps: true });
 
 const Sequence = model("Sequence", seqModel);

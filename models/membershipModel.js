@@ -23,6 +23,10 @@ const membershipModel = new Schema({
         type: Boolean,
         default: false
     },
+    belongsTo: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }
 }, { timeStamp: true });
 
 const MembershipDetail = model("Membership", membershipModel);

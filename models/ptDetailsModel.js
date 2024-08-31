@@ -19,6 +19,10 @@ const ptDetailsModel = new Schema({
     assignedTo: {
         type: Schema.Types.ObjectId,
         ref: "Staff"
+    },
+    belongsTo: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
     }
 }, { timeStamp: true });
 

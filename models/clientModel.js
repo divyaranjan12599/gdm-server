@@ -42,7 +42,7 @@ const clientModel = new Schema({
             type: Number
         }
     },
-    renewals:{
+    renewals: {
         type: Number,
         // required: true,
         default: 0,
@@ -73,56 +73,10 @@ const clientModel = new Schema({
     joiningdate: {
         type: String
     },
-    // membership: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: "Membership"
-    // }
-    //     registrationFees: {
-    //         type: Number
-    //     },
-    //     membershipPeriod: {
-    //         type: String,
-    //         enum: Object.values(MembershipPeriod)
-    //     },
-    //     membershipAmount: {
-    //         type: Number,
-    //     },
-    //     isPt: {
-    //         type: Boolean,
-    //         default: false
-    //     },
-    //     PTDetails: {
-    //         ptfees: {
-    //             type: Number
-    //         },
-    //         ptPeriod: {
-    //             type: String,
-    //             enum: Object.values(MembershipPeriod)
-    //         },
-    //         assignedTo: {
-    //             type: Schema.Types.ObjectId,
-    //             ref: "Staff"
-    //         }
-    //     }
-    // },
-    // paymentDetails: {
-    //     amountPaid: {
-    //         type: Number
-    //     },
-    //     mode: {
-    //         type: String,
-    //         enum: Object.values(PaymentMethod),
-    //     },
-    //     amountRemaining: {
-    //         type: Number
-    //     },
-    //     dueDate: {
-    //         type: String
-    //     },
-    //     transactionId: {
-    //         type: String,
-    //     }
-    // }
+    belongsTo: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }
 }, { timeStamp: true });
 
 const Client = model("Client", clientModel);

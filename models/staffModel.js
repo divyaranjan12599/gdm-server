@@ -65,6 +65,10 @@ const staffModel = new Schema({
     joiningdate: {
         type: String
     },
+    belongsTo: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }
 }, { timeStamp: true });
 
 const Staff = model("Staff", staffModel);

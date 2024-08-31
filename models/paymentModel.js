@@ -29,6 +29,10 @@ const paymentModel = new Schema({
     },
     transactionId: {
         type: String,
+    },
+    belongsTo: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
     }
 }, { timeStamp: true });
 
