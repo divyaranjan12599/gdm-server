@@ -131,7 +131,7 @@ export const createClient = async (req, res) => {
 
         const existingClientByEmail = await Client.findOne({ email, belongsTo: req.user.userId });
         console.log(existingClientByEmail);
-        
+
         if (existingClientByEmail) {
             return res.status(400).json({ message: "Client with this email already exists" });
         }
@@ -220,7 +220,7 @@ export const createClient = async (req, res) => {
     } catch (error) {
         res.status(400).json({ message: error.message });
         console.log(error);
-        
+
     }
 };
 
@@ -552,7 +552,6 @@ export const createStaff = async (req, res) => {
         // await seq.save();
 
         const staffData = {
-            id: newStaffId,
             name: staffName,
             contact: contactNumber,
             email: email,
@@ -751,3 +750,29 @@ export const deleteEnqById = async (req, res) => {
 };
 
 
+export const changePassword = async (req, res) => {
+    const userId = req.user.userId;
+    try {
+        const { oldPassword, newPassword } = req.body;
+
+        let user = await User.findById(userId);
+        if (!user) {
+            return res.status(401).json({ message: "User Not Found" });
+        }
+
+        const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+        if (passwordMatch) {
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            user.password = hashedPassword;
+            await user.save();
+
+            return res.status(200).json({ message: "Password changed successfully" });
+        } else {
+            return res.status(401).json({ message: "Invalid Old Password" });
+        }
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
