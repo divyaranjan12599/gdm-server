@@ -1,6 +1,6 @@
 import express from "express";
-import { createClient, createEnq, createPtMembershipByClientId, createPtMembershipByStaffId, createStaff, deleteClientById, deleteEnqById, deleteStaffById, getAllClient, getAllEnq, getAllMemberships, getAllMembershipsByClientId, getAllPaymentDetails, getAllPaymentDetailsByClientId, getAllPTMemberships, getAllStaff, getClientById, getEnqById, getStaffById, login, register, updateClientById, updateEnqById, updateMembershipByClientId, updateStaffById, verifyJWT } from "../controllers/userController.js";
-
+import { createClient, createEnq, createPtMembershipByClientId, createPtMembershipByStaffId, createStaff, deleteClientById, deleteEnqById, deleteStaffById, getAllClient, getAllEnq, getAllMemberships, getAllMembershipsByClientId, getAllPaymentDetails, getAllPaymentDetailsByClientId, getAllPTMemberships, getAllStaff, getClientById, getEnqById, getStaffById, login, register, test, updateClientById, updateEnqById, updateMembershipByClientId, updateStaffById, verifyJWT } from "../controllers/userController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -8,51 +8,53 @@ router.post("/register", register);
 
 router.post("/login", login);
 
-router.post('/create-client',createClient);
+router.get("/test", protect, test);
 
-router.get('/get-client/:id', getClientById);
+router.post('/create-client', protect, createClient);
 
-router.get('/get-clients', getAllClient);
+router.get('/get-client/:id', protect, getClientById);
 
-router.get('/get-memberships', getAllMemberships);
+router.get('/get-clients', protect, getAllClient);
 
-router.get('/get-memberships/:clientId', getAllMembershipsByClientId);
+router.get('/get-memberships', protect, getAllMemberships);
 
-router.get('/get-paymentDetails', getAllPaymentDetails);
+router.get('/get-memberships/:clientId', protect, getAllMembershipsByClientId);
 
-router.get('/get-paymentDetails/:clientId', getAllPaymentDetailsByClientId);
+router.get('/get-paymentDetails', protect, getAllPaymentDetails);
 
-router.put('/update-client/:id', updateClientById);
+router.get('/get-paymentDetails/:clientId', protect, getAllPaymentDetailsByClientId);
 
-router.put('/update-membership/:clientId', updateMembershipByClientId);
+router.put('/update-client/:id', protect, updateClientById);
 
-router.delete('/delete-client/:id', deleteClientById);
+router.put('/update-membership/:clientId', protect, updateMembershipByClientId);
 
-router.post('/create-staff', createStaff);
+router.delete('/delete-client/:id', protect, deleteClientById);
 
-router.get('/get-staff/:id', getStaffById);
+router.post('/create-staff', protect, createStaff);
 
-router.get('/get-staffs', getAllStaff);
+router.get('/get-staff/:id', protect, getStaffById);
 
-router.get('/get-ptDetails', getAllPTMemberships);
+router.get('/get-staffs', protect, getAllStaff);
 
-router.put('/update-staff/:id', updateStaffById);
+router.get('/get-ptDetails', protect, getAllPTMemberships);
 
-router.post('/create-ptcid/:clientId', createPtMembershipByClientId);
+router.put('/update-staff/:id', protect, updateStaffById);
 
-router.post('/create-ptsid/:staffId', createPtMembershipByStaffId);
+router.post('/create-ptcid/:clientId', protect, createPtMembershipByClientId);
 
-router.delete('/delete-staff/:id', deleteStaffById);
+router.post('/create-ptsid/:staffId', protect, createPtMembershipByStaffId);
 
-router.post('/create-enquiry', createEnq);
+router.delete('/delete-staff/:id', protect, deleteStaffById);
 
-router.get('/get-enquiry/:id', getEnqById);
+router.post('/create-enquiry', protect, createEnq);
 
-router.get('/get-enquiries', getAllEnq);
+router.get('/get-enquiry/:id', protect, getEnqById);
 
-router.put('/update-enquiry/:id', updateEnqById);
+router.get('/get-enquiries', protect, getAllEnq);
 
-router.delete('/delete-enquiry/:id', deleteEnqById);
+router.put('/update-enquiry/:id', protect, updateEnqById);
+
+router.delete('/delete-enquiry/:id', protect, deleteEnqById);
 
 export default router;
 

@@ -18,19 +18,19 @@ const connectDb = async () => {
     try {
         const connect = await mongoose.connect(MONGO_URI);
         // console.log("Db connected...");
-        const existingSeq = await Sequence.findById('000000000000000000000001');
-        if (!existingSeq) {
-            const seq = new Sequence({
-                _id: new mongoose.Types.ObjectId('000000000000000000000001'),
-                clientIdSeq: 0,
-                staffIdSeq: 0,
-                enqIdSeq: 0,
-            });
-            await seq.save();
+        // const existingSeq = await Sequence.findById('000000000000000000000001');
+        // if (!existingSeq) {
+        //     const seq = new Sequence({
+        //         _id: new mongoose.Types.ObjectId('000000000000000000000001'),
+        //         clientIdSeq: 0,
+        //         staffIdSeq: 0,
+        //         enqIdSeq: 0,
+        //     });
+        //     await seq.save();
             // console.log("Sequence document initialized");
-        } else {
-            // console.log("Sequence document already exists");
-        }
+        // } else {
+        //     // console.log("Sequence document already exists");
+        // }
     } catch (error) {
         // console.log("Db is not connected!!!", error);
     }

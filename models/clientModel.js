@@ -2,10 +2,7 @@ import { model, Schema } from "mongoose";
 import { Gender, IdProofAccepted, MembershipPeriod, PaymentMethod } from "./enums.js";
 
 const clientModel = new Schema({
-    id: {
-        type: Number,
-        unique: true
-    },
+    
     name: {
         type: String
     },

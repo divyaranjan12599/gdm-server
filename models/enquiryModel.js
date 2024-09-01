@@ -2,9 +2,7 @@ import { model, Schema } from "mongoose";
 import { Gender, MembershipPeriod, SourceOfEquiry } from "./enums.js";
 
 const enquiryModel = new Schema({
-    id: {
-        type: Number,
-    },
+
     name: {
         type: String
     },

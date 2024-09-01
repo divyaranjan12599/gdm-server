@@ -2,9 +2,6 @@ import { model, Schema } from "mongoose";
 import { Gender, IdProofAccepted, MembershipPeriod, PaymentMethod } from "./enums.js";
 
 const staffModel = new Schema({
-    id: {
-        type: Number,
-    },
     name: {
         type: String
     },

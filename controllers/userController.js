@@ -55,6 +55,21 @@ export const register = async (req, res) => {
     }
 }
 
+export const test = async (req, res) => {
+    try {
+        const user = req.user.userId;
+        if (user) {
+            console.log('Requested User ID:', user);
+            res.status(200).json({ message: 'User ID retrieved', userId: user._id });
+        } else {
+            res.status(404).json({ message: 'User not found in request' });
+        }
+    } catch (error) {
+        console.log('Error in test controller:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 
 export const login = async (req, res) => {
     try {
@@ -64,8 +79,9 @@ export const login = async (req, res) => {
             return res.status(401).json({ message: "User Not Found" });
         }
         const passwordMatch = await bcrypt.compare(password, user.password);
+        const userId = user._id
         if (passwordMatch) {
-            const token = jwt.sign({ email }, process.env.SECRET, { expiresIn: "24h" });
+            const token = jwt.sign({ userId, email }, process.env.SECRET, { expiresIn: "24h" });
             user = user.toObject();
             delete user.password;
             return res.status(200).json({ message: "User verified", user: user, token });
@@ -78,6 +94,7 @@ export const login = async (req, res) => {
 }
 
 export const createClient = async (req, res) => {
+
     try {
         const {
             fname,
@@ -129,14 +146,13 @@ export const createClient = async (req, res) => {
             return res.status(400).json({ message: "Invalid gender" });
         }
 
-        const seq = await Sequence.findById('000000000000000000000001');
+        // const seq = await Sequence.findById('000000000000000000000001');
         // console.log(seq);
-        const newClientId = seq.clientIdSeq + 1;
-        seq.clientIdSeq = newClientId;
-        await seq.save();
+        // const newClientId = seq.clientIdSeq + 1;
+        // seq.clientIdSeq = newClientId;
+        // await seq.save();
 
         const clientData = {
-            id: newClientId, // If you have an auto-increment logic, this should be handled differently
             name: capitalizeEachWord(fname + ' ' + lname),
             contact: contactNumber,
             email: email,
@@ -161,6 +177,8 @@ export const createClient = async (req, res) => {
                 contact: emergencyContactNumber
             },
             joiningdate: joiningDate,
+            belongsTo: req.user.userId
+
         };
 
         const client = new Client(clientData);
@@ -171,6 +189,7 @@ export const createClient = async (req, res) => {
             membershipPeriod: membershipPeriod || 'monthly',
             membershipAmount: parseFloat(membershipAmount),
             isPt: parseFloat(ptFees) > 0,
+            belongsTo: req.user.userId
         }
 
         if (parseFloat(ptFees) > 0) {
@@ -180,7 +199,8 @@ export const createClient = async (req, res) => {
                 ptfees: parseFloat(ptFees),
                 ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
                 assignedTo: ptAssignedStaff,
-                ptStartingDate: ptStartingDate
+                ptStartingDate: ptStartingDate,
+                belongsTo: req.user.userId
             };
             const ptDetails = new PTMembershipDetail(ptDetailsData);
             await ptDetails.save();
@@ -195,7 +215,9 @@ export const createClient = async (req, res) => {
             amountPaidOn: transactionDate,
             amountRemaining: parseFloat(amountRemaining),
             dueDate: dueDate,
-            transactionId: transactionId
+            transactionId: transactionId,
+            belongsTo: req.user.userId
+
         }
 
         const paymentDetails = new PaymentDetail(paymentDetailsData);
@@ -210,8 +232,9 @@ export const createClient = async (req, res) => {
 };
 
 export const getClientById = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const client = await Client.findById(req.params.id);
+        const client = await Client.find({ _id: req.params.id, belongsTo: userId });
         if (!client) {
             return res.status(404).json({ message: 'Client not found' });
         }
@@ -222,8 +245,9 @@ export const getClientById = async (req, res) => {
 };
 
 export const getAllClient = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const clients = await Client.find({}).sort({ joiningDate: 1 });
+        const clients = await Client.find({ belongsTo: userId }).sort({ joiningDate: 1 });
         if (!clients) {
             return res.status(404).json({ message: 'Client not found' });
         }
@@ -234,8 +258,9 @@ export const getAllClient = async (req, res) => {
 };
 
 export const getAllMemberships = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const memberships = await MembershipDetail.find({}).sort({ startingDate: 1 }).populate('membershipBy');
+        const memberships = await MembershipDetail.find({ belongsTo: userId }).sort({ startingDate: 1 }).populate('membershipBy');
         if (!memberships) {
             return res.status(404).json({ message: 'Membership details not found' });
         }
@@ -246,8 +271,9 @@ export const getAllMemberships = async (req, res) => {
 };
 
 export const getAllPTMemberships = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const memberships = await PTMembershipDetail.find({}).sort({ startingDate: 1 }).populate('ptTo').populate('assignedTo');
+        const memberships = await PTMembershipDetail.find({ belongsTo: userId }).sort({ startingDate: 1 }).populate('ptTo').populate('assignedTo');
         if (!memberships) {
             return res.status(404).json({ message: 'PT Membership details not found' });
         }
@@ -258,11 +284,12 @@ export const getAllPTMemberships = async (req, res) => {
 };
 
 export const getAllMembershipsByClientId = async (req, res) => {
+    const userId = req.user.userId;
     try {
         const { clientId } = req.params;
 
         // Fetch memberships filtered by client id
-        const memberships = await MembershipDetail.find({ membershipBy: clientId }).sort({ startingDate: 1 }).populate('membershipBy');
+        const memberships = await MembershipDetail.find({ membershipBy: clientId, belongsTo: userId }).sort({ startingDate: 1 }).populate('membershipBy');
 
         if (!memberships || memberships.length === 0) {
             return res.status(404).json({ message: 'No memberships found for this client' });
@@ -275,6 +302,7 @@ export const getAllMembershipsByClientId = async (req, res) => {
 };
 
 export const updateMembershipByClientId = async (req, res) => {
+    const userId = req.user.userId;
     try {
         const { clientId } = req.params;
         const {
@@ -289,8 +317,8 @@ export const updateMembershipByClientId = async (req, res) => {
             transactionId,
         } = req.body;
 
-        const updatedClient = await Client.findByIdAndUpdate(
-            clientId,
+        const updatedClient = await Client.findOneAndUpdate(
+            { _id: clientId, belongsTo: userId },
             { $inc: { renewals: 1 } },
             { new: true } // Return the updated document
         );
@@ -301,6 +329,7 @@ export const updateMembershipByClientId = async (req, res) => {
             membershipPeriod: membershipPeriod || 'monthly',
             membershipAmount: parseFloat(membershipAmount),
             isPt: parseFloat(ptFees) > 0,
+            belongsTo: userId
         }
 
         const membershipDetails = new MembershipDetail(membershipData);
@@ -312,7 +341,8 @@ export const updateMembershipByClientId = async (req, res) => {
             amountPaidOn: transactionDate,
             amountRemaining: parseFloat(amountRemaining || 0),
             dueDate: dueDate,
-            transactionId: transactionId
+            transactionId: transactionId,
+            belongsTo: userId
         }
 
         const paymentDetails = new PaymentDetail(paymentDetailsData);
@@ -327,6 +357,7 @@ export const updateMembershipByClientId = async (req, res) => {
 };
 
 export const createPtMembershipByClientId = async (req, res) => {
+    const userId = req.user.userId;
     try {
         const { clientId } = req.params;
         const {
@@ -350,7 +381,8 @@ export const createPtMembershipByClientId = async (req, res) => {
             ptfees: parseFloat(ptFees),
             ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
             assignedTo: ptAssignedStaff,
-            ptStartingDate: ptStartingDate
+            ptStartingDate: ptStartingDate,
+            belongsTo: userId
         };
         const ptDetails = new PTMembershipDetail(ptDetailsData);
         await ptDetails.save();
@@ -363,14 +395,15 @@ export const createPtMembershipByClientId = async (req, res) => {
             amountPaidOn: transactionDate,
             amountRemaining: parseFloat(amountRemaining || 0),
             dueDate: dueDate,
-            transactionId: transactionId
+            transactionId: transactionId,
+            belongsTo: userId
         }
 
         const paymentDetails = new PaymentDetail(paymentDetailsData);
 
         await paymentDetails.save();
 
-        res.status(200).json({pt: ptDetails, payment: paymentDetails});
+        res.status(200).json({ pt: ptDetails, payment: paymentDetails });
     } catch (error) {
         // console.log(error);
         res.status(500).json({ message: error.message });
@@ -378,6 +411,7 @@ export const createPtMembershipByClientId = async (req, res) => {
 };
 
 export const createPtMembershipByStaffId = async (req, res) => {
+    const userId = req.user.userId;
     try {
         const { staffId } = req.params;
         const {
@@ -401,7 +435,8 @@ export const createPtMembershipByStaffId = async (req, res) => {
             ptfees: parseFloat(ptFees),
             ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
             assignedTo: ptAssignedStaff,
-            ptStartingDate: ptStartingDate
+            ptStartingDate: ptStartingDate,
+            belongsTo: userId
         };
         const ptDetails = new PTMembershipDetail(ptDetailsData);
         await ptDetails.save();
@@ -414,7 +449,8 @@ export const createPtMembershipByStaffId = async (req, res) => {
             amountPaidOn: transactionDate,
             amountRemaining: parseFloat(amountRemaining),
             dueDate: dueDate,
-            transactionId: transactionId
+            transactionId: transactionId,
+            belongsTo: userId
         }
 
         const paymentDetails = new PaymentDetail(paymentDetailsData);
@@ -428,8 +464,9 @@ export const createPtMembershipByStaffId = async (req, res) => {
 };
 
 export const getAllPaymentDetails = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const payments = await PaymentDetail.find({}).sort({ amountPaidOn: 1 }).populate('amountPaidBy');
+        const payments = await PaymentDetail.find({ belongsTo: userId }).sort({ amountPaidOn: 1 }).populate('amountPaidBy');
         if (!payments) {
             return res.status(404).json({ message: 'Client Payment Details not found' });
         }
@@ -440,9 +477,10 @@ export const getAllPaymentDetails = async (req, res) => {
 };
 
 export const getAllPaymentDetailsByClientId = async (req, res) => {
+    const userId = req.user.userId;
     try {
         const { clientId } = req.params;
-        const payments = await PaymentDetail.find({ amountPaidBy: clientId }).sort({ amountPaidOn: 1 }).populate('amountPaidBy');
+        const payments = await PaymentDetail.find({ amountPaidBy: clientId, belongsTo: userId }).sort({ amountPaidOn: 1 }).populate('amountPaidBy');
         if (!payments) {
             return res.status(404).json({ message: 'Client Payment Details not found' });
         }
@@ -454,8 +492,9 @@ export const getAllPaymentDetailsByClientId = async (req, res) => {
 
 
 export const updateClientById = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const client = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const client = await Client.findOneAndUpdate({ _id: req.params.id, belongsTo: userId }, req.body, { new: true });
         if (!client) {
             return res.status(404).json({ message: 'Client not found' });
         }
@@ -466,8 +505,9 @@ export const updateClientById = async (req, res) => {
 };
 
 export const deleteClientById = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const client = await Client.findByIdAndDelete(req.params.id);
+        const client = await Client.findOneAndDelete({ _id: req.params.id, belongsTo: userId });
         if (!client) {
             return res.status(404).json({ message: 'Client not found' });
         }
@@ -478,6 +518,7 @@ export const deleteClientById = async (req, res) => {
 };
 
 export const createStaff = async (req, res) => {
+    const userId = req.user.userId;
     try {
         const {
             staffName,
@@ -502,20 +543,20 @@ export const createStaff = async (req, res) => {
         // if (existingStaffById) {
         //     return res.status(400).json({ message: "Staff with this ID already exists" });
         // }
-        const existingStaffByEmail = await Staff.findOne({ email });
+        const existingStaffByEmail = await Staff.findOne({ email, belongsTo: userId });
         if (existingStaffByEmail) {
             return res.status(400).json({ message: "Staff with this email already exists" });
         }
-        const existingStaffByContact = await Staff.findOne({ contact: contactNumber });
+        const existingStaffByContact = await Staff.findOne({ contact: contactNumber, belongsTo: userId });
         if (existingStaffByContact) {
             return res.status(400).json({ message: "Staff with this contact already exists" });
         }
 
-        const seq = await Sequence.findById('000000000000000000000001');
+        // const seq = await Sequence.findById('000000000000000000000001');
         // console.log(seq);
-        const newStaffId = seq.staffIdSeq + 1;
-        seq.staffIdSeq = newStaffId;
-        await seq.save();
+        // const newStaffId = seq.staffIdSeq + 1;
+        // seq.staffIdSeq = newStaffId;
+        // await seq.save();
 
         const staffData = {
             id: newStaffId,
@@ -543,7 +584,8 @@ export const createStaff = async (req, res) => {
                 name: emergencyContactName,
                 contact: emergencyContactNumber
             },
-            joiningdate: joiningDate
+            joiningdate: joiningDate,
+            belongsTo: userId
         }
         const staff = new Staff(staffData);
         await staff.save();
@@ -554,8 +596,9 @@ export const createStaff = async (req, res) => {
 };
 
 export const getStaffById = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const staff = await Staff.findById(req.params.id);
+        const staff = await Staff.findOne({ _id: req.params.id, belongsTo: userId });
         if (!staff) {
             return res.status(404).json({ message: 'Staff not found' });
         }
@@ -566,8 +609,9 @@ export const getStaffById = async (req, res) => {
 };
 
 export const getAllStaff = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const staffs = await Staff.find({}).sort({ joiningDate: 1 });
+        const staffs = await Staff.find({ belongsTo: userId }).sort({ joiningDate: 1 });
         if (!staffs) {
             return res.status(404).json({ message: 'Staff not found' });
         }
@@ -578,8 +622,9 @@ export const getAllStaff = async (req, res) => {
 };
 
 export const updateStaffById = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const staff = await Staff.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const staff = await Staff.findOneAndUpdate({ _id: req.params.id, belongsTo: userId }, req.body, { new: true });
         if (!staff) {
             return res.status(404).json({ message: 'Staff not found' });
         }
@@ -590,8 +635,9 @@ export const updateStaffById = async (req, res) => {
 };
 
 export const deleteStaffById = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const staff = await Staff.findByIdAndDelete(req.params.id);
+        const staff = await Staff.findOneAndDelete({ _id: req.params.id, belongsTo: userId });
         if (!staff) {
             return res.status(404).json({ message: 'Staff not found' });
         }
@@ -602,6 +648,7 @@ export const deleteStaffById = async (req, res) => {
 };
 
 export const createEnq = async (req, res) => {
+    const userId = req.user.userId;
     try {
         const {
             visitorName,
@@ -621,20 +668,20 @@ export const createEnq = async (req, res) => {
         // if (existingStaffById) {
         //     return res.status(400).json({ message: "Staff with this ID already exists" });
         // }
-        const attainByStaff = await Staff.findById(attainedBy);
+        const attainByStaff = await Staff.find({ _id: attainedBy, belongsTo: userId });
 
         if (!attainByStaff) {
             return res.status(400).json({ message: "Staff attained the client is not exist" });
         }
 
-        const seq = await Sequence.findById('000000000000000000000001');
-        // console.log(seq);
-        const newEnqId = seq.enqIdSeq + 1;
-        seq.enqIdSeq = newEnqId;
-        await seq.save();
+        // const seq = await Sequence.findById('000000000000000000000001');
+        // // console.log(seq);
+        // const newEnqId = seq.enqIdSeq + 1;
+        // seq.enqIdSeq = newEnqId;
+        // await seq.save();
 
         const enqData = {
-            id: newEnqId,
+            // id: newEnqId,
             name: visitorName,
             contact: phone,
             email: email,
@@ -647,7 +694,8 @@ export const createEnq = async (req, res) => {
             enquiredFor: enquiredFor,
             intrestedOn: interestedOn,
             attainBy: attainByStaff,
-            comment: comment
+            comment: comment,
+            belongsTo: userId
         }
         const enquiry = new Enquiry(enqData);
         await enquiry.save();
@@ -658,8 +706,9 @@ export const createEnq = async (req, res) => {
 };
 
 export const getEnqById = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const enquiry = await Enquiry.findById(req.params.id);
+        const enquiry = await Enquiry.find({ _id: req.params.id, belongsTo: userId });
         if (!enquiry) {
             return res.status(404).json({ message: 'Enquiry not found' });
         }
@@ -670,8 +719,9 @@ export const getEnqById = async (req, res) => {
 };
 
 export const getAllEnq = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const enquiries = await Enquiry.find({}).sort({ enquiryDate: 1 }).populate('attainBy');
+        const enquiries = await Enquiry.find({ belongsTo: userId }).sort({ enquiryDate: 1 }).populate('attainBy');
         if (!enquiries) {
             return res.status(404).json({ message: 'enquiry not found' });
         }
@@ -682,8 +732,9 @@ export const getAllEnq = async (req, res) => {
 };
 
 export const updateEnqById = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const enquiry = await Enquiry.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const enquiry = await Enquiry.findOneAndUpdate({ _id: req.params.id, belongsTo: userId }, req.body, { new: true });
         if (!enquiry) {
             return res.status(404).json({ message: 'Enquiry not found' });
         }
@@ -694,8 +745,9 @@ export const updateEnqById = async (req, res) => {
 };
 
 export const deleteEnqById = async (req, res) => {
+    const userId = req.user.userId;
     try {
-        const enquiry = await Enquiry.findByIdAndDelete(req.params.id);
+        const enquiry = await Enquiry.findOneAndDelete({ _id: req.params.id, belongsTo: userId });
         if (!enquiry) {
             return res.status(404).json({ message: 'enquiry not found' });
         }
