@@ -3,7 +3,6 @@ import Client from "../models/clientModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Staff from "../models/staffModel.js"
-import Sequence from "../models/sequenceModel.js";
 import { Gender, PaidFor } from "../models/enums.js";
 import Enquiry from "../models/enquiryModel.js";
 import PaymentDetail from "../models/paymentModel.js";
@@ -130,14 +129,14 @@ export const createClient = async (req, res) => {
             ptAssignedTo
         } = req.body;
 
-        // console.log(req);
-
-        const existingClientByEmail = await Client.findOne({ email });
+        const existingClientByEmail = await Client.findOne({ email, belongsTo: req.user.userId });
+        console.log(existingClientByEmail);
+        
         if (existingClientByEmail) {
             return res.status(400).json({ message: "Client with this email already exists" });
         }
 
-        const existingClientByContact = await Client.findOne({ contact: contactNumber });
+        const existingClientByContact = await Client.findOne({ contact: contactNumber, belongsTo: req.user.userId });
         if (existingClientByContact) {
             return res.status(400).json({ message: "Client with this contact already exists" });
         }
@@ -145,12 +144,6 @@ export const createClient = async (req, res) => {
         if (![Gender.MALE, Gender.FEMALE].includes(gender.toLowerCase())) {
             return res.status(400).json({ message: "Invalid gender" });
         }
-
-        // const seq = await Sequence.findById('000000000000000000000001');
-        // console.log(seq);
-        // const newClientId = seq.clientIdSeq + 1;
-        // seq.clientIdSeq = newClientId;
-        // await seq.save();
 
         const clientData = {
             name: capitalizeEachWord(fname + ' ' + lname),
@@ -164,8 +157,6 @@ export const createClient = async (req, res) => {
                 state: state,
                 pincode: zip
             },
-            // isPt: parseFloat(ptFees) > 0,
-            // PTDetails: ptDetails,
             idproof: {
                 type: idProofType,
                 number: idProofNumber,
@@ -228,6 +219,8 @@ export const createClient = async (req, res) => {
         res.status(201).json({ message: "Client created successfully", client });
     } catch (error) {
         res.status(400).json({ message: error.message });
+        console.log(error);
+        
     }
 };
 

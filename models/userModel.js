@@ -5,9 +5,6 @@ const userModel = new Schema({
         type: String,
         required: true
     },
-    gymLogoUrl: {
-        type: String
-    },
     username: {
         type: String,
         required: true
