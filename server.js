@@ -26,5 +26,5 @@ connectDb();
 app.use("/user", userRoutes)
 
 const server = app.listen(port, () => {
-    // console.log("listening on port", port);
+    console.log("listening on port", port);
 })

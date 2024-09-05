@@ -7,7 +7,7 @@ import { Gender, PaidFor } from "../models/enums.js";
 import Enquiry from "../models/enquiryModel.js";
 import PaymentDetail from "../models/paymentModel.js";
 import MembershipDetail from "../models/membershipModel.js";
-import { capitalizeEachWord } from "../utilityFunctions.js";
+import { capitalizeEachWord, endDateGenerator } from "../utilityFunctions.js";
 import PTMembershipDetail from "../models/ptDetailsModel.js";
 
 export const verifyJWT = (req, res, next) => {
@@ -27,7 +27,9 @@ export const verifyJWT = (req, res, next) => {
 
 export const register = async (req, res) => {
     try {
-        const { ownerName, email, password } = req.body;
+        const { gymTitle, contact, role, ownerName, email, password } = req.body;
+        console.log(req.body);
+        
 
         let userExists = await User.findOne({ email });
         if (userExists) {
@@ -40,6 +42,9 @@ export const register = async (req, res) => {
                 return res.status(501).json({ error: err.message })
             }
             let user = new User({
+                role,
+                gymTitle,
+                contact,
                 ownerName,
                 email,
                 password: hash,
@@ -50,6 +55,8 @@ export const register = async (req, res) => {
         });
 
     } catch (err) {
+        console.log(err);
+        
         res.status(401).send(err.message);
     }
 }
@@ -178,6 +185,7 @@ export const createClient = async (req, res) => {
             membershipBy: client,
             startingDate: membershipStartingDate,
             membershipPeriod: membershipPeriod || 'monthly',
+            endDate: endDateGenerator(membershipStartingDate, membershipPeriod),
             membershipAmount: parseFloat(membershipAmount),
             isPt: parseFloat(ptFees) > 0,
             belongsTo: req.user.userId
@@ -191,6 +199,7 @@ export const createClient = async (req, res) => {
                 ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
                 assignedTo: ptAssignedStaff,
                 ptStartingDate: ptStartingDate,
+                ptEndDate: endDateGenerator(ptStartingDate, ptMembershipPeriod),
                 belongsTo: req.user.userId
             };
             const ptDetails = new PTMembershipDetail(ptDetailsData);
@@ -310,16 +319,38 @@ export const updateMembershipByClientId = async (req, res) => {
             transactionId,
         } = req.body;
 
+
+        const existingMembership = await MembershipDetail.findOne({
+            membershipBy: clientId,
+            $or: [
+                {
+                    startingDate: { $lt: new Date() },
+                    endDate: { $gt: new Date() }
+                },
+                {
+                    startingDate: { $lt: new Date() },
+                    endDate: { $exists: false }
+                }
+            ]
+        });
+
+        console.log(existingMembership);
+
+        if (existingMembership) {
+            return res.status(400).json({ message: 'Client already has an active membership.' });
+        }
+
         const updatedClient = await Client.findOneAndUpdate(
             { _id: clientId, belongsTo: userId },
             { $inc: { renewals: 1 } },
-            { new: true } // Return the updated document
+            { new: true }
         );
 
         const membershipData = {
             membershipBy: updatedClient,
             startingDate: membershipStartingDate,
             membershipPeriod: membershipPeriod || 'monthly',
+            endDate: endDateGenerator(membershipStartingDate, membershipPeriod),
             membershipAmount: parseFloat(membershipAmount),
             isPt: parseFloat(ptFees) > 0,
             belongsTo: userId
@@ -366,8 +397,28 @@ export const createPtMembershipByClientId = async (req, res) => {
             transactionId,
         } = req.body;
 
-        const client = await Client.findById(clientId);
 
+        const existingMembership = await PTMembershipDetail.findOne({
+            ptTo: clientId,
+            $or: [
+                {
+                    ptStartingDate: { $lt: new Date() },
+                    endDate: { $gt: new Date() }
+                },
+                {
+                    startingDate: { $lt: new Date() },
+                    endDate: { $exists: false }
+                }
+            ]
+        });
+
+        console.log(existingMembership);
+
+        if (existingMembership) {
+            return res.status(400).json({ message: 'Client already has an active membership.' });
+        }
+
+        const client = await Client.findById(clientId);
         const ptAssignedStaff = await Staff.findById(ptAssignedTo);
         const ptDetailsData = {
             ptTo: client,
@@ -375,6 +426,7 @@ export const createPtMembershipByClientId = async (req, res) => {
             ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
             assignedTo: ptAssignedStaff,
             ptStartingDate: ptStartingDate,
+            ptEndDate: endDateGenerator(ptStartingDate, ptMembershipPeriod),
             belongsTo: userId
         };
         const ptDetails = new PTMembershipDetail(ptDetailsData);
@@ -429,6 +481,7 @@ export const createPtMembershipByStaffId = async (req, res) => {
             ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
             assignedTo: ptAssignedStaff,
             ptStartingDate: ptStartingDate,
+            ptEndDate: endDateGenerator(ptStartingDate, ptMembershipPeriod),
             belongsTo: userId
         };
         const ptDetails = new PTMembershipDetail(ptDetailsData);
@@ -660,7 +713,8 @@ export const createEnq = async (req, res) => {
         // if (existingStaffById) {
         //     return res.status(400).json({ message: "Staff with this ID already exists" });
         // }
-        const attainByStaff = await Staff.find({ _id: attainedBy, belongsTo: userId });
+        const attainByStaff = await Staff.findOne({ _id: attainedBy, belongsTo: userId });
+        // console.log(attainByStaff);
 
         if (!attainByStaff) {
             return res.status(400).json({ message: "Staff attained the client is not exist" });
@@ -693,6 +747,7 @@ export const createEnq = async (req, res) => {
         await enquiry.save();
         res.status(201).json({ message: "Enquiry created", enquiry });
     } catch (error) {
+        // console.log(error);
         res.status(400).json({ message: error.message });
     }
 };

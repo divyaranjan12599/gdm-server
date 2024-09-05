@@ -9,6 +9,9 @@ const membershipModel = new Schema({
     startingDate: {
         type: String,
     },
+    endDate: {
+        type: String,
+    },
     registrationFees: {
         type: Number
     },

@@ -16,6 +16,9 @@ const ptDetailsModel = new Schema({
     ptStartingDate: {
         type: String,
     },
+    ptEndDate: {
+        type: String,
+    },
     assignedTo: {
         type: Schema.Types.ObjectId,
         ref: "Staff"

@@ -8,8 +8,16 @@ const staffModel = new Schema({
     contact: {
         type: String
     },
+    role: {
+        type: String,
+        default: 'STAFF'
+    },
     email: {
-        type: String
+        type: String,
+        required: true,
+    },
+    password: {
+        type: String,
     },
     gender: {
         type: String,

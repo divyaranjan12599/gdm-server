@@ -5,12 +5,8 @@ const userModel = new Schema({
         type: String,
         required: true
     },
-    username: {
+    ownerName: {
         type: String,
-        required: true
-    },
-    ownersName: {
-        type: [String],
         required: true
     },
     contact: {
@@ -25,6 +21,10 @@ const userModel = new Schema({
         type: String,
         required: true
     },
+    role: {
+        type: String,
+        default: 'ADMIN'
+    }
 
 }, { timeStamp: true });
 
