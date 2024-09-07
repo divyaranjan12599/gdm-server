@@ -29,7 +29,7 @@ export const register = async (req, res) => {
     try {
         const { gymTitle, contact, role, ownerName, email, password } = req.body;
         console.log(req.body);
-        
+
 
         let userExists = await User.findOne({ email });
         if (userExists) {
@@ -56,7 +56,7 @@ export const register = async (req, res) => {
 
     } catch (err) {
         console.log(err);
-        
+
         res.status(401).send(err.message);
     }
 }
@@ -76,6 +76,24 @@ export const test = async (req, res) => {
     }
 };
 
+export const checkToken = (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if (!token) {
+        return res.status(403).json({ message: 'No token provided' });
+    }
+
+    jwt.verify(token, process.env.SECRET, (err, decoded) => {
+        if (err) {
+            if (err.name === 'TokenExpiredError') {
+                return res.status(401).json({ message: 'Token has expired' });
+            }
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+
+        return res.status(200).json({ message: 'Token is valid', user: decoded });
+    });
+};
 
 export const login = async (req, res) => {
     try {
@@ -87,7 +105,7 @@ export const login = async (req, res) => {
         const passwordMatch = await bcrypt.compare(password, user.password);
         const userId = user._id
         if (passwordMatch) {
-            const token = jwt.sign({ userId, email }, process.env.SECRET, { expiresIn: "24h" });
+            const token = jwt.sign({ userId, email }, process.env.SECRET, { expiresIn: "2m" });
             user = user.toObject();
             delete user.password;
             return res.status(200).json({ message: "User verified", user: user, token });
