@@ -7,7 +7,7 @@ import { Gender, PaidFor } from "../models/enums.js";
 import Enquiry from "../models/enquiryModel.js";
 import PaymentDetail from "../models/paymentModel.js";
 import MembershipDetail from "../models/membershipModel.js";
-import { capitalizeEachWord, endDateGenerator } from "../utilityFunctions.js";
+import { capitalizeEachWord, endDateGenerator, generateCustomId } from "../utilityFunctions.js";
 import PTMembershipDetail from "../models/ptDetailsModel.js";
 
 export const verifyJWT = (req, res, next) => {
@@ -119,7 +119,7 @@ export const createClient = async (req, res) => {
             idProofNumber,
             idProofFront,
             idProofBack,
-            ptStartingDate,
+            ptStartDate,
             emergencyContactName,
             emergencyContactNumber,
             membershipPeriod,
@@ -153,6 +153,7 @@ export const createClient = async (req, res) => {
         }
 
         const clientData = {
+            // providedId: generateCustomId(req.user.userId),
             name: capitalizeEachWord(fname + ' ' + lname),
             contact: contactNumber,
             email: email,
@@ -183,7 +184,7 @@ export const createClient = async (req, res) => {
 
         const membershipData = {
             membershipBy: client,
-            startingDate: membershipStartingDate,
+            startDate: membershipStartingDate,
             membershipPeriod: membershipPeriod || 'monthly',
             endDate: endDateGenerator(membershipStartingDate, membershipPeriod),
             membershipAmount: parseFloat(membershipAmount),
@@ -198,8 +199,8 @@ export const createClient = async (req, res) => {
                 ptfees: parseFloat(ptFees),
                 ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
                 assignedTo: ptAssignedStaff,
-                ptStartingDate: ptStartingDate,
-                ptEndDate: endDateGenerator(ptStartingDate, ptMembershipPeriod),
+                ptStartDate: ptStartDate,
+                ptEndDate: endDateGenerator(ptStartDate, ptMembershipPeriod),
                 belongsTo: req.user.userId
             };
             const ptDetails = new PTMembershipDetail(ptDetailsData);
@@ -213,7 +214,7 @@ export const createClient = async (req, res) => {
             amountPaid: parseFloat(amountPaid),
             mode: paymentMode || 'cash',
             amountPaidOn: transactionDate,
-            amountRemaining: parseFloat(amountRemaining),
+            amountRemaining: parseFloat(amountRemaining || 0),
             dueDate: dueDate,
             transactionId: transactionId,
             belongsTo: req.user.userId
@@ -249,7 +250,7 @@ export const getClientById = async (req, res) => {
 export const getAllClient = async (req, res) => {
     const userId = req.user.userId;
     try {
-        const clients = await Client.find({ belongsTo: userId }).sort({ joiningDate: 1 });
+        const clients = await Client.find({ belongsTo: userId }).sort({ _id: 1 });
         if (!clients) {
             return res.status(404).json({ message: 'Client not found' });
         }
@@ -262,7 +263,7 @@ export const getAllClient = async (req, res) => {
 export const getAllMemberships = async (req, res) => {
     const userId = req.user.userId;
     try {
-        const memberships = await MembershipDetail.find({ belongsTo: userId }).sort({ startingDate: 1 }).populate('membershipBy');
+        const memberships = await MembershipDetail.find({ belongsTo: userId }).sort({ startDate: 1 }).populate('membershipBy');
         if (!memberships) {
             return res.status(404).json({ message: 'Membership details not found' });
         }
@@ -275,7 +276,7 @@ export const getAllMemberships = async (req, res) => {
 export const getAllPTMemberships = async (req, res) => {
     const userId = req.user.userId;
     try {
-        const memberships = await PTMembershipDetail.find({ belongsTo: userId }).sort({ startingDate: 1 }).populate('ptTo').populate('assignedTo');
+        const memberships = await PTMembershipDetail.find({ belongsTo: userId }).sort({ startDate: 1 }).populate('ptTo').populate('assignedTo');
         if (!memberships) {
             return res.status(404).json({ message: 'PT Membership details not found' });
         }
@@ -291,7 +292,7 @@ export const getAllMembershipsByClientId = async (req, res) => {
         const { clientId } = req.params;
 
         // Fetch memberships filtered by client id
-        const memberships = await MembershipDetail.find({ membershipBy: clientId, belongsTo: userId }).sort({ startingDate: 1 }).populate('membershipBy');
+        const memberships = await MembershipDetail.find({ membershipBy: clientId, belongsTo: userId }).sort({ startDate: 1 }).populate('membershipBy');
 
         if (!memberships || memberships.length === 0) {
             return res.status(404).json({ message: 'No memberships found for this client' });
@@ -324,11 +325,11 @@ export const updateMembershipByClientId = async (req, res) => {
             membershipBy: clientId,
             $or: [
                 {
-                    startingDate: { $lt: new Date() },
+                    startDate: { $lt: new Date() },
                     endDate: { $gt: new Date() }
                 },
                 {
-                    startingDate: { $lt: new Date() },
+                    startDate: { $lt: new Date() },
                     endDate: { $exists: false }
                 }
             ]
@@ -348,7 +349,7 @@ export const updateMembershipByClientId = async (req, res) => {
 
         const membershipData = {
             membershipBy: updatedClient,
-            startingDate: membershipStartingDate,
+            startDate: membershipStartingDate,
             membershipPeriod: membershipPeriod || 'monthly',
             endDate: endDateGenerator(membershipStartingDate, membershipPeriod),
             membershipAmount: parseFloat(membershipAmount),
@@ -385,7 +386,7 @@ export const createPtMembershipByClientId = async (req, res) => {
     try {
         const { clientId } = req.params;
         const {
-            ptStartingDate,
+            ptStartDate,
             ptFees,
             ptMembershipPeriod,
             ptAssignedTo,
@@ -402,12 +403,12 @@ export const createPtMembershipByClientId = async (req, res) => {
             ptTo: clientId,
             $or: [
                 {
-                    ptStartingDate: { $lt: new Date() },
-                    endDate: { $gt: new Date() }
+                    ptStartDate: { $lt: new Date() },
+                    ptEndDate: { $gt: new Date() }
                 },
                 {
-                    startingDate: { $lt: new Date() },
-                    endDate: { $exists: false }
+                    ptStartDate: { $lt: new Date() },
+                    ptEndDate: { $exists: false }
                 }
             ]
         });
@@ -425,8 +426,8 @@ export const createPtMembershipByClientId = async (req, res) => {
             ptfees: parseFloat(ptFees),
             ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
             assignedTo: ptAssignedStaff,
-            ptStartingDate: ptStartingDate,
-            ptEndDate: endDateGenerator(ptStartingDate, ptMembershipPeriod),
+            ptStartDate: ptStartDate,
+            ptEndDate: endDateGenerator(ptStartDate, ptMembershipPeriod),
             belongsTo: userId
         };
         const ptDetails = new PTMembershipDetail(ptDetailsData);
@@ -460,7 +461,7 @@ export const createPtMembershipByStaffId = async (req, res) => {
     try {
         const { staffId } = req.params;
         const {
-            ptStartingDate,
+            ptStartDate,
             ptFees,
             ptMembershipPeriod,
             ptTo,
@@ -480,8 +481,8 @@ export const createPtMembershipByStaffId = async (req, res) => {
             ptfees: parseFloat(ptFees),
             ptPeriod: ptMembershipPeriod || 'monthly', // Default value if empty
             assignedTo: ptAssignedStaff,
-            ptStartingDate: ptStartingDate,
-            ptEndDate: endDateGenerator(ptStartingDate, ptMembershipPeriod),
+            ptStartDate: ptStartDate,
+            ptEndDate: endDateGenerator(ptStartDate, ptMembershipPeriod),
             belongsTo: userId
         };
         const ptDetails = new PTMembershipDetail(ptDetailsData);
@@ -493,7 +494,7 @@ export const createPtMembershipByStaffId = async (req, res) => {
             mode: paymentMode || 'cash',
             paidFor: PaidFor.PTMembership,
             amountPaidOn: transactionDate,
-            amountRemaining: parseFloat(amountRemaining),
+            amountRemaining: parseFloat(amountRemaining || 0),
             dueDate: dueDate,
             transactionId: transactionId,
             belongsTo: userId

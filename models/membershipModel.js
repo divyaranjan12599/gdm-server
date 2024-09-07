@@ -6,7 +6,7 @@ const membershipModel = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Client"
     },
-    startingDate: {
+    startDate: {
         type: String,
     },
     endDate: {

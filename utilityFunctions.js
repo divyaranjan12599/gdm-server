@@ -1,3 +1,7 @@
+import { Error } from "mongoose";
+import User from "./models/userModel.js";
+import Client from "./models/clientModel.js";
+
 export function capitalizeEachWord(str) {
     return str
         .split(' ') // Split the string into words
@@ -39,3 +43,22 @@ export function endDateGenerator(startDate, period) {
 
     return formattedEndDate;
 }
+
+export const generateCustomId = async (belongsToUserId) => {
+    const user = await User.findById(belongsToUserId);
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    const gymName = user.gymTitle || ''; //Elite Fitness >> EF0001
+    const gymShortform = user.gymShortform || gymName.split(' ').map(word => word.charAt(0)).join('').toUpperCase();
+
+    const lastClient = await Client.findOne({ providedId: new RegExp(`^${gymShortform}\\d+$`) }).sort({ providedId: -1 });
+
+    const lastId = lastClient ? parseInt(lastClient.providedId.replace(gymShortform, ''), 10) : 0;
+    const nextId = (lastId + 1).toString();
+
+    const paddedNextId = nextId.padStart(4, '0');
+
+    return `${gymShortform}${paddedNextId}`;
+};

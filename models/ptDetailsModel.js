@@ -13,7 +13,7 @@ const ptDetailsModel = new Schema({
         type: String,
         enum: Object.values(MembershipPeriod)
     },
-    ptStartingDate: {
+    ptStartDate: {
         type: String,
     },
     ptEndDate: {

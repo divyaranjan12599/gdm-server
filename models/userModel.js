@@ -5,6 +5,9 @@ const userModel = new Schema({
         type: String,
         required: true
     },
+    gymShortform: {
+        type: String,
+    },
     ownerName: {
         type: String,
         required: true
