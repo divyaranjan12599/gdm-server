@@ -10,6 +10,8 @@ export const protect = async (req, res, next) => {
             token = req.headers.authorization.split(' ')[1];
             const decoded = jwt.verify(token, process.env.SECRET);
             req.user = decoded;
+            req.role = decoded.role;
+            req.staffId = decoded.staffId;
             if (!req.user) {
                 return res.status(401).json({ message: 'User not found' });
             }

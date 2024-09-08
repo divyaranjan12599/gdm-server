@@ -1,5 +1,5 @@
 import express from "express";
-import { changePassword, checkToken, checkUserEmail, createClient, createEnq, createPtMembershipByClientId, createPtMembershipByStaffId, createStaff, deleteClientById, deleteEnqById, deleteStaffById, getAllClient, getAllEnq, getAllMemberships, getAllMembershipsByClientId, getAllPaymentDetails, getAllPaymentDetailsByClientId, getAllPTMemberships, getAllStaff, getClientById, getEnqById, getStaffById, login, register, test, updateClientById, updateEnqById, updateMembershipByClientId, updateStaffById, verifyJWT } from "../controllers/userController.js";
+import { addUser, changePassword, checkToken, checkUserEmail, createClient, createEnq, createPtMembershipByClientId, createPtMembershipByStaffId, createStaff, deleteClientById, deleteEnqById, deleteStaffById, deleteUser, getAllClient, getAllEnq, getAllMemberships, getAllMembershipsByClientId, getAllPaymentDetails, getAllPaymentDetailsByClientId, getAllPTMemberships, getAllStaff, getClientById, getEnqById, getStaffById, login, register, test, updateClientById, updateEnqById, updateMembershipByClientId, updateStaffById, verifyJWT } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -62,6 +62,10 @@ router.get('/get-enquiries', protect, getAllEnq);
 router.put('/update-enquiry/:id', protect, updateEnqById);
 
 router.delete('/delete-enquiry/:id', protect, deleteEnqById);
+
+router.post('/add-user/:id', protect, addUser);
+
+router.delete('/delete-user/:id', protect, deleteUser);
 
 export default router;
 

@@ -9,6 +9,7 @@ import PaymentDetail from "../models/paymentModel.js";
 import MembershipDetail from "../models/membershipModel.js";
 import { capitalizeEachWord, endDateGenerator, generateCustomId } from "../utilityFunctions.js";
 import PTMembershipDetail from "../models/ptDetailsModel.js";
+import { sendAdminUserAddedEmail, sendAdminUserRemovedEmail, sendUserAddedEmail } from "../emailService.js";
 
 export const verifyJWT = (req, res, next) => {
 	const authHeader = req.headers["authorization"];
@@ -78,7 +79,7 @@ export const checkUserEmail = async (req, res) => {
 		const { email } = req.body;
 		let user = await User.findOne({ email });
 		if (!user) {
-			return res.status(401).json({ message: "User Not Found" , userExists: false});
+			return res.status(401).json({ message: "User Not Found", userExists: false });
 		} else {
 			return res.status(200).json({ message: "User found", userExists: true });
 		}
@@ -111,12 +112,27 @@ export const login = async (req, res) => {
 		const { email, password } = req.body;
 		let user = await User.findOne({ email });
 		if (!user) {
-			return res.status(401).json({ message: "User Not Found" });
+			const staff = await Staff.findOne({ email });
+
+			if (!staff) {
+				return res.status(401).json({ message: "User Not Found" });
+			}
+
+			const passwordMatch = await bcrypt.compare(password, staff.password);
+
+			if (passwordMatch) {
+				const token = jwt.sign({ staffId: staff._id, userId: staff.belongsTo, email, role: "STAFF" }, process.env.SECRET, { expiresIn: "8h" });
+				const staffObject = staff.toObject();
+				delete staffObject.password; 
+				return res.status(200).json({ message: "User verified", user: staffObject, token });
+			} else {
+				return res.status(401).json({ message: "Invalid Password" });
+			}
 		}
 		const passwordMatch = await bcrypt.compare(password, user.password);
 		const userId = user._id;
 		if (passwordMatch) {
-			const token = jwt.sign({ userId, email }, process.env.SECRET, { expiresIn: "8h" });
+			const token = jwt.sign({ userId, email, role: "ADMIN" }, process.env.SECRET, { expiresIn: "8h" });
 			user = user.toObject();
 			delete user.password;
 			return res.status(200).json({ message: "User verified", user: user, token });
@@ -733,22 +749,99 @@ export const changePassword = async (req, res) => {
 	try {
 		const { oldPassword, newPassword } = req.body;
 
-		let user = await User.findById(userId);
-		if (!user) {
+		const staff = await Staff.findById(req.user.staffId);
+
+		if (!staff) {
+			let user = await User.findById(userId);
+			if (!user) {
+				return res.status(401).json({ message: "User Not Found" });
+			}
+
+			const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+			if (passwordMatch) {
+				const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+				user.password = hashedPassword;
+				await user.save();
+
+				return res.status(200).json({ message: "Password changed successfully" });
+			} else {
+				return res.status(401).json({ message: "Invalid Old Password" });
+			}
+		}
+		if (!staff.password) {
 			return res.status(401).json({ message: "User Not Found" });
 		}
-
-		const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+		const passwordMatch = await bcrypt.compare(oldPassword, staff.password);
 		if (passwordMatch) {
 			const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-			user.password = hashedPassword;
-			await user.save();
+			staff.password = hashedPassword;
+			await staff.save();
 
 			return res.status(200).json({ message: "Password changed successfully" });
 		} else {
 			return res.status(401).json({ message: "Invalid Old Password" });
 		}
+	} catch (error) {
+		res.status(500).json({ message: error.message });
+	}
+};
+
+export const addUser = async (req, res) => {
+	const userId = req.user.userId;
+	const { password } = req.body;
+	const staffId = req.params.id;
+	try {
+		const staff = await Staff.findOne({ _id: staffId, belongsTo: userId });
+		if (!staff) {
+			return res.status(404).json({ message: "Staff not found" });
+		}
+		const user = await User.findById(userId);
+		if (user.numberOfUsers >= 1) {
+			return res.status(401).json({ message: "User Limit exceeded" });
+		}
+
+		if (!password) {
+			return res.status(401).json({ message: "Please provide default password." });
+		}
+
+		const hashedPassword = await bcrypt.hash(password, 10);
+		const result = await Staff.findByIdAndUpdate(staffId, { password: hashedPassword });
+
+		const numberOfUsers = user.numberOfUsers;
+		user.numberOfUsers = numberOfUsers + 1;
+		user.save();
+		await sendUserAddedEmail(staff.email, staff.name, password);
+		await sendAdminUserAddedEmail(user.email, user.ownerName, staff.name, staff.email);
+		res.status(200).json({ message: "User Added Successfully!!" });
+	} catch (error) {
+		res.status(500).json({ message: error.message });
+	}
+};
+
+export const deleteUser = async (req, res) => {
+	const userId = req.user.userId;
+	const staffId = req.params.id;
+	try {
+		const user = await User.findById(userId);
+		if (user.numberOfUsers <= 0) {
+			return res.status(401).json({ message: "No Users Exits" });
+		}
+		const staff = await Staff.findOne({ _id: staffId, belongsTo: userId });
+		if (!staff) {
+			return res.status(404).json({ message: "Staff not found" });
+		}
+
+		staff.password = undefined;
+		staff.save();
+
+		const numberOfUsers = user.numberOfUsers;
+		user.numberOfUsers = numberOfUsers - 1;
+		user.save();
+		await sendAdminUserRemovedEmail(user.email, user.ownerName, staff.name, staff.email);
+
+		res.status(200).json({ message: "User Deleted Successfully!!" });
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}
