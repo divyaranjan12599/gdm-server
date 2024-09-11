@@ -8,6 +8,10 @@ const clientModel = new Schema({
     //     required: true,
     //     unique: true
     // },
+    clientId:{
+        type: String,
+        unique: true,
+    },
     name: {
         type: String
     },

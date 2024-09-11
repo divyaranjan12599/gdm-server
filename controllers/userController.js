@@ -7,7 +7,7 @@ import { Gender, PaidFor } from "../models/enums.js";
 import Enquiry from "../models/enquiryModel.js";
 import PaymentDetail from "../models/paymentModel.js";
 import MembershipDetail from "../models/membershipModel.js";
-import { capitalizeEachWord, endDateGenerator, generateCustomId } from "../utilityFunctions.js";
+import { capitalizeEachWord, endDateGenerator } from "../utilityFunctions.js";
 import PTMembershipDetail from "../models/ptDetailsModel.js";
 import { sendAdminUserAddedEmail, sendAdminUserRemovedEmail, sendUserAddedEmail } from "../emailService.js";
 
@@ -123,7 +123,7 @@ export const login = async (req, res) => {
 			if (passwordMatch) {
 				const token = jwt.sign({ staffId: staff._id, userId: staff.belongsTo, email, role: "STAFF" }, process.env.SECRET, { expiresIn: "8h" });
 				const staffObject = staff.toObject();
-				delete staffObject.password; 
+				delete staffObject.password;
 				return res.status(200).json({ message: "User verified", user: staffObject, token });
 			} else {
 				return res.status(401).json({ message: "Invalid Password" });
@@ -148,8 +148,13 @@ export const createClient = async (req, res) => {
 	try {
 		const { fname, lname, email, contactNumber, picUrl, address1, address2, city, state, zip, gender, joiningDate, idProofType, idProofNumber, idProofFront, idProofBack, ptStartDate, emergencyContactName, emergencyContactNumber, membershipPeriod, membershipStartingDate, membershipAmount, amountPaid, amountRemaining, dueDate, paymentMode, transactionDate, transactionId, ptFees, ptMembershipPeriod, ptAssignedTo } = req.body;
 
+		const user = await User.findById(req.user.userId);
+		if (!user) {
+			return res.status(403).json({ message: "Request Denied/" });
+		}
+
 		const existingClientByEmail = await Client.findOne({ email, belongsTo: req.user.userId });
-		console.log(existingClientByEmail);
+		// console.log(existingClientByEmail);
 
 		if (existingClientByEmail) {
 			return res.status(400).json({ message: "Client with this email already exists" });
@@ -164,8 +169,19 @@ export const createClient = async (req, res) => {
 			return res.status(400).json({ message: "Invalid gender" });
 		}
 
+		const currentDate = new Date();
+		const formattedDate = `${currentDate.getFullYear()}${(currentDate.getMonth() + 1).toString().padStart(2, "0")}${currentDate.getDate().toString().padStart(2, "0")}`;
+		const formattedTime = `${currentDate.getHours().toString().padStart(2, "0")}${currentDate.getMinutes().toString().padStart(2, "0")}${currentDate.getSeconds().toString().padStart(2, "0")}`;
+		const randomNumber = Math.floor(Math.random() * 10000);
+		const gymTitleShortForm = user.gymTitle
+			.split(" ")
+			.map((word) => word.charAt(0))
+			.join("")
+			.toUpperCase();
+		const newClientId = `${gymTitleShortForm}_${fname[0].toUpperCase()}${lname[0].toUpperCase()}_${formattedDate}-${formattedTime}_${randomNumber}`;
+
 		const clientData = {
-			// providedId: generateCustomId(req.user.userId),
+			clientId: newClientId,
 			name: capitalizeEachWord(fname + " " + lname),
 			contact: contactNumber,
 			email: email,
@@ -332,8 +348,6 @@ export const updateMembershipByClientId = async (req, res) => {
 				},
 			],
 		});
-
-		console.log(existingMembership);
 
 		if (existingMembership) {
 			return res.status(400).json({ message: "Client already has an active membership." });
