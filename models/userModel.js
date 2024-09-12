@@ -33,6 +33,23 @@ const userModel = new Schema(
 			type: Number,
             default: 0
 		},
+        address: {
+            areaDetails: {
+                type: String
+            },
+    
+            city: {
+                type: String
+            },
+    
+            state: {
+                type: String
+            },
+    
+            pincode: {
+                type: Number
+            }
+        },
 	},
 	{ timeStamp: true }
 );
