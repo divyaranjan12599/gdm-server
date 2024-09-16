@@ -329,6 +329,20 @@ export const getAllMembershipsByClientId = async (req, res) => {
 		res.status(500).json({ message: error.message });
 	}
 };
+export const getPtDetailsByClientId = async (req, res) => {
+	const userId = req.user.userId;
+	try {
+		const { clientId } = req.params;
+		const memberships = await PTMembershipDetail.find({ ptTo: clientId, belongsTo: userId })
+			.populate("ptTo", "name") 
+			.populate("assignedTo", "name") 
+			.populate("belongsTo", "username"); 
+
+		res.status(200).json(memberships);
+	} catch (error) {
+		res.status(500).json({ message: error.message });
+	}
+};
 
 export const updateMembershipByClientId = async (req, res) => {
 	const userId = req.user.userId;
@@ -881,7 +895,7 @@ export const getMyUsers = async (req, res) => {
 };
 
 export const updateUserProfile = async (req, res) => {
-	const userId = req.user.userId; 
+	const userId = req.user.userId;
 	const { gymTitle, ownerName, email, contact, profilePicture } = req.body;
 
 	try {
