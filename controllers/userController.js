@@ -566,7 +566,7 @@ export const deleteClientById = async (req, res) => {
 export const createStaff = async (req, res) => {
 	const userId = req.user.userId;
 	try {
-		const { staffName, email, picUrl, contactNumber, address1, address2, city, state, zip, gender, joiningDate, idProofType, idProofNumber, idProofFront, idProofBack, emergencyContactName, emergencyContactNumber } = req.body;
+		const { staffName, email, picUrl, contactNumber, address, city, state, zip, gender, joiningDate, idProofType, idProofNumber, idProofFront, idProofBack, emergencyContactName, emergencyContactNumber } = req.body;
 		// const existingStaffById = await Staff.findOne({ id });
 		// if (existingStaffById) {
 		//     return res.status(400).json({ message: "Staff with this ID already exists" });
@@ -593,7 +593,7 @@ export const createStaff = async (req, res) => {
 			gender: gender.toLowerCase() || "male",
 			photoUrl: picUrl,
 			address: {
-				areaDetails: address1 + " " + address2,
+				areaDetails: address,
 
 				city: city,
 
@@ -884,7 +884,7 @@ export const getMyUsers = async (req, res) => {
 		if (user.numberOfUsers <= 0) {
 			return res.status(401).json({ message: "No Users Exits" });
 		}
-		const staff = await Staff.findOne({ belongsTo: userId, password: { $exists: true, $ne: null } });
+		const staff = await Staff.find({ belongsTo: userId, password: { $exists: true, $ne: null } });
 		if (!staff) {
 			return res.status(404).json({ message: "Staff not found" });
 		}
