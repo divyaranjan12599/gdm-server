@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import bcrypt from "bcrypt"
 import userRoutes from "./routes/userRoute.js";
+import expenseRoutes from "./routes/expenseRoute.js";
 import User from "./models/userModel.js";
 import { sendOtpEmail, generateOtp, saveOtp, verifyOtp } from "./emailService.js";
 
@@ -25,6 +26,7 @@ const connectDb = async () => {
 connectDb();
 
 app.use("/user", userRoutes);
+app.use('/user/expenses', expenseRoutes);
 
 app.post("/api/auth/reset-password", async (req, res) => {
 	const { email, otp, newPassword } = req.body;
