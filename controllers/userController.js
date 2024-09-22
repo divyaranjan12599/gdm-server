@@ -7,7 +7,7 @@ import { Gender, PaidFor } from "../models/enums.js";
 import Enquiry from "../models/enquiryModel.js";
 import PaymentDetail from "../models/paymentModel.js";
 import MembershipDetail from "../models/membershipModel.js";
-import { capitalizeEachWord, endDateGenerator } from "../utilityFunctions.js";
+import { capitalizeEachWord, endDateGenerator, formatDate } from "../utilityFunctions.js";
 import PTMembershipDetail from "../models/ptDetailsModel.js";
 import { sendAdminUserAddedEmail, sendAdminUserRemovedEmail, sendUserAddedEmail } from "../emailService.js";
 
@@ -204,7 +204,7 @@ export const createClient = async (req, res) => {
 				name: emergencyContactName,
 				contact: emergencyContactNumber,
 			},
-			joiningdate: joiningDate,
+			joiningdate: formatDate(joiningDate),
 			belongsTo: req.user.userId,
 		};
 
@@ -212,9 +212,9 @@ export const createClient = async (req, res) => {
 
 		const membershipData = {
 			membershipBy: client,
-			startDate: membershipStartingDate,
+			startDate: formatDate(membershipStartingDate),
 			membershipPeriod: membershipPeriod || "monthly",
-			endDate: endDateGenerator(membershipStartingDate, membershipPeriod),
+			endDate: endDateGenerator(formatDate(membershipStartingDate), membershipPeriod),
 			membershipAmount: parseFloat(membershipAmount),
 			isPt: parseFloat(ptFees) > 0,
 			belongsTo: req.user.userId,
@@ -227,8 +227,8 @@ export const createClient = async (req, res) => {
 				ptfees: parseFloat(ptFees),
 				ptPeriod: ptMembershipPeriod || "monthly", // Default value if empty
 				assignedTo: ptAssignedStaff,
-				ptStartDate: ptStartDate,
-				ptEndDate: endDateGenerator(ptStartDate, ptMembershipPeriod),
+				ptStartDate: formatDate(ptStartDate),
+				ptEndDate: endDateGenerator(formatDate(ptStartDate), ptMembershipPeriod),
 				belongsTo: req.user.userId,
 			};
 			const ptDetails = new PTMembershipDetail(ptDetailsData);
@@ -241,9 +241,9 @@ export const createClient = async (req, res) => {
 			amountPaidBy: client,
 			amountPaid: parseFloat(amountPaid),
 			mode: paymentMode || "cash",
-			amountPaidOn: transactionDate,
+			amountPaidOn: formatDate(transactionDate),
 			amountRemaining: parseFloat(amountRemaining || 0),
-			dueDate: dueDate,
+			dueDate: formatDate(dueDate),
 			transactionId: transactionId,
 			belongsTo: req.user.userId,
 		};
@@ -372,9 +372,9 @@ export const updateMembershipByClientId = async (req, res) => {
 
 		const membershipData = {
 			membershipBy: updatedClient,
-			startDate: membershipStartingDate,
+			startDate: formatDate(membershipStartingDate),
 			membershipPeriod: membershipPeriod || "monthly",
-			endDate: endDateGenerator(membershipStartingDate, membershipPeriod),
+			endDate: endDateGenerator(formatDate(membershipStartingDate), membershipPeriod),
 			membershipAmount: parseFloat(membershipAmount),
 			isPt: parseFloat(ptFees) > 0,
 			belongsTo: userId,
@@ -386,9 +386,9 @@ export const updateMembershipByClientId = async (req, res) => {
 			amountPaidBy: updatedClient,
 			amountPaid: parseFloat(amountPaid),
 			mode: paymentMode || "cash",
-			amountPaidOn: transactionDate,
+			amountPaidOn: formatDate(transactionDate),
 			amountRemaining: parseFloat(amountRemaining || 0),
-			dueDate: dueDate,
+			dueDate: formatDate(dueDate),
 			transactionId: transactionId,
 			belongsTo: userId,
 		};
@@ -437,8 +437,8 @@ export const createPtMembershipByClientId = async (req, res) => {
 			ptfees: parseFloat(ptFees),
 			ptPeriod: ptMembershipPeriod || "monthly", // Default value if empty
 			assignedTo: ptAssignedStaff,
-			ptStartDate: ptStartDate,
-			ptEndDate: endDateGenerator(ptStartDate, ptMembershipPeriod),
+			ptStartDate: formatDate(ptStartDate),
+			ptEndDate: endDateGenerator(formatDate(ptStartDate), ptMembershipPeriod),
 			belongsTo: userId,
 		};
 		const ptDetails = new PTMembershipDetail(ptDetailsData);
@@ -449,9 +449,9 @@ export const createPtMembershipByClientId = async (req, res) => {
 			amountPaid: parseFloat(amountPaid),
 			mode: paymentMode || "cash",
 			paidFor: PaidFor.PTMembership,
-			amountPaidOn: transactionDate,
+			amountPaidOn: formatDate(transactionDate),
 			amountRemaining: parseFloat(amountRemaining || 0),
-			dueDate: dueDate,
+			dueDate: formatDate(dueDate),
 			transactionId: transactionId,
 			belongsTo: userId,
 		};
@@ -481,8 +481,8 @@ export const createPtMembershipByStaffId = async (req, res) => {
 			ptfees: parseFloat(ptFees),
 			ptPeriod: ptMembershipPeriod || "monthly", // Default value if empty
 			assignedTo: ptAssignedStaff,
-			ptStartDate: ptStartDate,
-			ptEndDate: endDateGenerator(ptStartDate, ptMembershipPeriod),
+			ptStartDate: formatDate(ptStartDate),
+			ptEndDate: endDateGenerator(formatDate(ptStartDate), ptMembershipPeriod),
 			belongsTo: userId,
 		};
 		const ptDetails = new PTMembershipDetail(ptDetailsData);
@@ -493,9 +493,9 @@ export const createPtMembershipByStaffId = async (req, res) => {
 			amountPaid: parseFloat(amountPaid),
 			mode: paymentMode || "cash",
 			paidFor: PaidFor.PTMembership,
-			amountPaidOn: transactionDate,
+			amountPaidOn: formatDate(transactionDate),
 			amountRemaining: parseFloat(amountRemaining || 0),
-			dueDate: dueDate,
+			dueDate: formatDate(dueDate),
 			transactionId: transactionId,
 			belongsTo: userId,
 		};
@@ -611,7 +611,7 @@ export const createStaff = async (req, res) => {
 				name: emergencyContactName,
 				contact: emergencyContactNumber,
 			},
-			joiningdate: joiningDate,
+			joiningdate: formatDate(joiningDate),
 			belongsTo: userId,
 		};
 		const staff = new Staff(staffData);
@@ -704,8 +704,8 @@ export const createEnq = async (req, res) => {
 			source: source,
 			address: address,
 			referredBy: referredBy,
-			enquiryDate: enquiryOn,
-			lastFollowUpDate: lastFollowUpOn,
+			enquiryDate: formatDate(enquiryOn),
+			lastFollowUpDate: formatDate(lastFollowUpOn),
 			enquiredFor: enquiredFor,
 			intrestedOn: interestedOn,
 			attainBy: attainByStaff,
