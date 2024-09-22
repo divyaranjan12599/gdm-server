@@ -1,14 +1,15 @@
 import ExpenseDetail from "../models/expenseModel.js";
+import { formatDate } from "../utilityFunctions.js";
 
 export const createExpense = async (req, res) => {
 	const { amountPaid, amountPaidOn, paidFor } = req.body;
-    // console.log("User : ", req.user);
+	// console.log("User : ", req.user);
 	try {
 		const newExpense = new ExpenseDetail({
 			amountPaid,
-			amountPaidOn,
+			amountPaidOn: formatDate(amountPaidOn),
 			paidFor,
-			belongsTo: req.user.userId, 
+			belongsTo: req.user.userId,
 		});
 
 		const savedExpense = await newExpense.save();
@@ -27,9 +28,9 @@ export const updateExpense = async (req, res) => {
 			id,
 			{
 				amountPaid,
-				amountPaidOn,
+				amountPaidOn: formatDate(amountPaidOn),
 				paidFor,
-				belongsTo: req.user.userId, 
+				belongsTo: req.user.userId,
 			},
 			{ new: true }
 		);

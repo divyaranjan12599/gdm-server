@@ -56,10 +56,12 @@ export function formatDate(dateString) {
 };
 
 export function endDateGenerator(startDate, period) {
-	const [monthAbbrev, day, year] = startDate.split(" "); // Split by space
-	const month = new Date(`${monthAbbrev} 1, ${year}`).getMonth(); // Get month index from abbreviated month
+	// Directly parse the startDate
+	const endDate = new Date(startDate);
 
-	let endDate = new Date(year, month, day); // Month is zero-indexed
+	if (isNaN(endDate)) {
+		return "Invalid Date"; // Handle invalid date parsing
+	}
 
 	switch (period) {
 		case "monthly":
@@ -87,3 +89,4 @@ export function endDateGenerator(startDate, period) {
 
 	return formattedEndDate;
 }
+
