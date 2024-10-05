@@ -263,7 +263,7 @@ export const createClient = async (req, res) => {
 export const getClientById = async (req, res) => {
 	const userId = req.user.userId;
 	try {
-		const client = await Client.find({ _id: req.params.id, belongsTo: userId });
+		const client = await Client.findOne({ _id: req.params.id, belongsTo: userId });
 		if (!client) {
 			return res.status(404).json({ message: "Client not found" });
 		}
