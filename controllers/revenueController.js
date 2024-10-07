@@ -38,7 +38,7 @@ import PaymentDetail from "../models/paymentModel.js";
 //     return results;
 // };
 
-export const countMembershipsByYear = async () => {
+export const countMembershipsByYear = async (req, res) => {
     const results = await MembershipDetail.aggregate([
         {
             $addFields: {
@@ -67,10 +67,11 @@ export const countMembershipsByYear = async () => {
             $sort: { year: 1 }
         }
     ]);
-    return results;
+    return res.status(200).json(results);
+
 };
 
-export const countMembershipsByMonth = async () => {
+export const countMembershipsByMonth = async (req, res) => {
     const results = await MembershipDetail.aggregate([
         {
             $addFields: {
@@ -103,10 +104,11 @@ export const countMembershipsByMonth = async () => {
             $sort: { year: 1, month: 1 }
         }
     ]);
-    return results;
+    return res.status(200).json(results);
+
 };
 
-export const countMembershipsByDay = async () => {
+export const countMembershipsByDay = async (req, res) => {
     const results = await MembershipDetail.aggregate([
         {
             $addFields: {
@@ -141,10 +143,11 @@ export const countMembershipsByDay = async () => {
             $sort: { year: 1, month: 1, day: 1 }
         }
     ]);
-    return results;
+    return res.status(200).json(results);
+
 };
 
-export const countMembershipsByMonthAndPeriod = async () => {
+export const countMembershipsByMonthAndPeriod = async (req, res) => {
     const results = await MembershipDetail.aggregate([
         {
             $addFields: {
@@ -179,10 +182,11 @@ export const countMembershipsByMonthAndPeriod = async () => {
             $sort: { year: 1, month: 1, membershipPeriod: 1 }
         }
     ]);
-    return results;
+    return res.status(200).json(results);
+
 };
 
-export const countMembershipsByYearAndPeriod = async () => {
+export const countMembershipsByYearAndPeriod = async (req, res) => {
     const results = await MembershipDetail.aggregate([
         {
             $addFields: {
@@ -215,10 +219,11 @@ export const countMembershipsByYearAndPeriod = async () => {
             $sort: { year: 1, membershipPeriod: 1 }
         }
     ]);
-    return results;
+    return res.status(200).json(results);
+
 };
 
-const getAllYearlyMonthlyTotals = async () => {
+export const getAllYearlyMonthlyTotals = async (req, res) => {
     const result = await PaymentDetail.aggregate([
         {
             $addFields: {
@@ -260,10 +265,11 @@ const getAllYearlyMonthlyTotals = async () => {
         monthlyTotals[year][month - 1] = item.totalAmount; // Map total amounts to the correct month index
     });
 
-    return monthlyTotals;
+    return res.status(200).json(monthlyTotals);
+
 };
 
-const getTotalPayments = async () => {
+export const getTotalPayments = async (req, res) => {
     const result = await PaymentDetail.aggregate([
         {
             $group: {
@@ -273,10 +279,12 @@ const getTotalPayments = async () => {
         }
     ]);
 
-    return result.length > 0 ? result[0].totalAmount : 0;
+    let rlt=  result.length > 0 ? result[0].totalAmount : 0;
+    return res.status(200).json(rlt);
+
 };
 
-const getAllYearlyMonthlyExpenseTotals = async () => {
+export const getAllYearlyMonthlyExpenseTotals = async (req, res) => {
     const result = await ExpenseDetail.aggregate([
         {
             $addFields: {
@@ -318,10 +326,11 @@ const getAllYearlyMonthlyExpenseTotals = async () => {
         monthlyTotals[year][month - 1] = item.totalAmount; // Map total amounts to the correct month index
     });
 
-    return monthlyTotals;
+    return res.status(200).json(monthlyTotals);
+
 };
 
-const getTotalExpensePayments = async () => {
+export const getTotalExpensePayments = async (req, res) => {
     const result = await ExpenseDetail.aggregate([
         {
             $group: {
@@ -331,7 +340,9 @@ const getTotalExpensePayments = async () => {
         }
     ]);
 
-    return result.length > 0 ? result[0].totalAmount : 0;
+    let rlt = result.length > 0 ? result[0].totalAmount : 0;
+    return res.status(200).json(rlt);
+
 };
 
 export const testing = async () => {
