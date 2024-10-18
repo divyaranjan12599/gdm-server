@@ -566,7 +566,7 @@ export const deleteClientById = async (req, res) => {
 export const createStaff = async (req, res) => {
 	const userId = req.user.userId;
 	try {
-		const { staffName, email, picUrl, contactNumber, address, city, state, zip, gender, joiningDate, idProofType, idProofNumber, idProofFront, idProofBack, emergencyContactName, emergencyContactNumber } = req.body;
+		const { staffName, email, picUrl, contactNumber, address, city, state, zip, gender, joiningDate, idProofType, idProofNumber, emergencyContactName, emergencyContactNumber } = req.body;
 		// const existingStaffById = await Staff.findOne({ id });
 		// if (existingStaffById) {
 		//     return res.status(400).json({ message: "Staff with this ID already exists" });
@@ -579,12 +579,6 @@ export const createStaff = async (req, res) => {
 		if (existingStaffByContact) {
 			return res.status(400).json({ message: "Staff with this contact already exists" });
 		}
-
-		// const seq = await Sequence.findById('000000000000000000000001');
-		// console.log(seq);
-		// const newStaffId = seq.staffIdSeq + 1;
-		// seq.staffIdSeq = newStaffId;
-		// await seq.save();
 
 		const staffData = {
 			name: staffName,
