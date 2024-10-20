@@ -16,7 +16,8 @@ export const PaymentMethod = {
 
 export const PaidFor = {
     PTMembership: 'pt',
-    NORMAL: 'normal', 
+    NORMAL: 'normal',
+    NORMAL_AND_PT: 'normal with pt',
 }
 
 export const IdProofAccepted = {
@@ -26,8 +27,8 @@ export const IdProofAccepted = {
 }
 
 export const Gender = {
-    MALE: 'male',
-    FEMALE: 'female'
+    MALE: 'Male',
+    FEMALE: 'Female'
 }
 
 export const SourceOfEquiry = {

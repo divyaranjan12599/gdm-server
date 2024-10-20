@@ -1,5 +1,5 @@
 import express from "express";
-import { addUser, changePassword, checkToken, checkUserEmail, createClient, createEnq, createPtMembershipByClientId, createPtMembershipByStaffId, createStaff, deleteClientById, deleteEnqById, deleteStaffById, deleteUser, getAllClient, getAllEnq, getAllMemberships, getAllMembershipsByClientId, getAllPaymentDetails, getAllPaymentDetailsByClientId, getAllPTMemberships, getAllStaff, getClientById, getEnqById, getMyUsers, getStaffById, login, register, test, updateClientById, updateEnqById, getPtDetailsByClientId, updateMembershipByClientId, updateStaffById, updateUserProfile, verifyJWT } from "../controllers/userController.js";
+import { addUser, changePassword, checkToken, checkUserEmail, createClient, getPtDetailsByStaffId, createEnq, createPtMembershipByClientId, createPtMembershipByStaffId, createStaff, deleteClientById, deleteEnqById, deleteStaffById, deleteUser, getAllClient, getAllEnq, getAllMemberships, getAllMembershipsByClientId, getAllPaymentDetails, getAllPaymentDetailsByClientId, getAllPTMemberships, getAllStaff, getClientById, getEnqById, getMyUsers, getStaffById, login, register, test, updateClientById, updateEnqById, getPtDetailsByClientId, updateMembershipByClientId, updateStaffById, updateUserProfile, verifyJWT } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -45,6 +45,8 @@ router.get('/get-staffs', protect, getAllStaff);
 router.get('/get-ptDetails', protect, getAllPTMemberships);
 
 router.get('/get-ptDetails/:clientId', protect, getPtDetailsByClientId);
+
+router.get('/get-ptbystaffid/:staffId', protect, getPtDetailsByStaffId);
 
 router.put('/update-staff/:id', protect, updateStaffById);
 
