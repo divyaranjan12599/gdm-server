@@ -15,6 +15,7 @@ export const protect = async (req, res, next) => {
             if (!req.user) {
                 return res.status(401).json({ message: 'User not found' });
             }
+            // console.log(req.user)
             next();
         } catch (error) {
             console.error('Error in protect middleware:', error);

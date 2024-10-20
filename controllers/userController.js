@@ -10,6 +10,7 @@ import MembershipDetail from "../models/membershipModel.js";
 import { capitalizeEachWord, endDateGenerator, formatDate } from "../utilityFunctions.js";
 import PTMembershipDetail from "../models/ptDetailsModel.js";
 import { sendAdminUserAddedEmail, sendAdminUserRemovedEmail, sendUserAddedEmail } from "../emailService.js";
+import mongoose from "mongoose";
 
 export const verifyJWT = (req, res, next) => {
 	const authHeader = req.headers["authorization"];
@@ -642,17 +643,42 @@ export const getAllStaff = async (req, res) => {
 	}
 };
 
+// export const updateStaffById = async (req, res) => {
+// 	const userId = req.user.userId;
+// 	console.log("userId : ", userId)
+// 	try {
+// 		const staff = await Staff.findOneAndUpdate({ _id: req.params.id, belongsTo: userId }, req.body, { new: true });
+// 		if (!staff) {
+// 			return res.status(404).json({ message: "Staff not found" });
+// 		}
+// 		res.status(200).json({ message: "Staff details updated", staff });
+// 	} catch (error) {
+// 		res.status(400).json({ message: error.message });
+// 	}
+// };
+
 export const updateStaffById = async (req, res) => {
-	const userId = req.user.userId;
-	try {
-		const staff = await Staff.findOneAndUpdate({ _id: req.params.id, belongsTo: userId }, req.body, { new: true });
-		if (!staff) {
-			return res.status(404).json({ message: "Staff not found" });
-		}
-		res.status(200).json({ message: "Staff details updated", staff });
-	} catch (error) {
-		res.status(400).json({ message: error.message });
-	}
+    const userId = req.user.userId;
+    const { id } = req.params;  
+    console.log("userId : ", userId);
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid staff ID format" });
+    }
+    
+    try {
+        const staff = await Staff.findOneAndUpdate(
+            { _id: id, belongsTo: userId },
+            req.body,
+            { new: true }
+        );
+        if (!staff) {
+            return res.status(404).json({ message: "Staff not found" });
+        }
+        res.status(200).json({ message: "Staff details updated", staff });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 };
 
 export const deleteStaffById = async (req, res) => {
