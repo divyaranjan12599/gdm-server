@@ -241,7 +241,7 @@ export const createClient = async (req, res) => {
         .json({ message: "Client with this contact already exists" });
     }
 
-    if (![Gender.MALE, Gender.FEMALE].includes(gender.toLowerCase())) {
+    if (![Gender.MALE.toLowerCase(), Gender.FEMALE.toLowerCase()].includes(gender.toLowerCase())) {
       return res.status(400).json({ message: "Invalid gender" });
     }
 
@@ -274,7 +274,7 @@ export const createClient = async (req, res) => {
       name: capitalizeEachWord(fname + " " + lname),
       contact: contactNumber,
       email: email,
-      gender: gender.toLowerCase() || "male",
+      gender: gender || "Male",
       photoUrl: picUrl,
       address: {
         areaDetails: `${address1} ${address2}`,
