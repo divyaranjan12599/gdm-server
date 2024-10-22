@@ -634,58 +634,60 @@ export const createPtMembershipByClientId = async (req, res) => {
 };
 
 export const createPtMembershipByStaffId = async (req, res) => {
-  const userId = req.user.userId;
-  try {
-    const { staffId } = req.params;
-    const {
-      ptStartDate,
-      ptFees,
-      ptMembershipPeriod,
-      ptTo,
-      amountPaid,
-      amountRemaining,
-      dueDate,
-      paymentMode,
-      transactionDate,
-      transactionId,
-    } = req.body;
+	const userId = req.user.userId;
+	try {
+	  const { staffId } = req.params;
+	  const {
+		ptStartDate,
+		ptFees,
+		ptMembershipPeriod,
+		ptTo,
+		amountPaid,
+		amountRemaining,
+		dueDate,
+		paymentMode,
+		transactionDate,
+		transactionId,
+	  } = req.body;
+  
+	  const client = await Client.findById(ptTo);
+	  const ptAssignedStaff = await Staff.findById(staffId);
+  
+	  const ptDetailsData = {
+		ptTo: client,
+		ptfees: parseFloat(ptFees),
+		ptPeriod: ptMembershipPeriod || "monthly", // Default value if empty
+		assignedTo: ptAssignedStaff,
+		ptStartDate: formatDate(ptStartDate),
+		ptEndDate: endDateGenerator(formatDate(ptStartDate), ptMembershipPeriod),
+		belongsTo: userId,
+	  };
+	  const ptDetails = new PTMembershipDetail(ptDetailsData);
+	  await ptDetails.save();
+  
+	  const paymentDetailsData = {
+		amountPaidBy: client,
+		amountPaid: parseFloat(amountPaid),
+		mode: paymentMode || "cash",
+		paidFor: PaidFor.PTMembership,
+		amountPaidOn: formatDate(transactionDate),
+		amountRemaining: parseFloat(amountRemaining || 0),
+		dueDate: formatDate(dueDate),
+		transactionId: transactionId,
+		belongsTo: userId,
+	  };
+	  const paymentDetails = new PaymentDetail(paymentDetailsData);
+	  await paymentDetails.save();
 
-    const client = await Client.findById(ptTo);
-
-    const ptAssignedStaff = await Staff.findById(staffId);
-    const ptDetailsData = {
-      ptTo: client,
-      ptfees: parseFloat(ptFees),
-      ptPeriod: ptMembershipPeriod || "monthly", // Default value if empty
-      assignedTo: ptAssignedStaff,
-      ptStartDate: formatDate(ptStartDate),
-      ptEndDate: endDateGenerator(formatDate(ptStartDate), ptMembershipPeriod),
-      belongsTo: userId,
-    };
-    const ptDetails = new PTMembershipDetail(ptDetailsData);
-    await ptDetails.save();
-
-    const paymentDetailsData = {
-      amountPaidBy: client,
-      amountPaid: parseFloat(amountPaid),
-      mode: paymentMode || "cash",
-      paidFor: PaidFor.PTMembership,
-      amountPaidOn: formatDate(transactionDate),
-      amountRemaining: parseFloat(amountRemaining || 0),
-      dueDate: formatDate(dueDate),
-      transactionId: transactionId,
-      belongsTo: userId,
-    };
-
-    const paymentDetails = new PaymentDetail(paymentDetailsData);
-
-    await paymentDetails.save();
-
-    res.status(200).json(ptDetails, paymentDetails);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+	  res.status(200).json({
+		ptDetails,
+		paymentDetails,
+	  });
+	} catch (error) {
+	  res.status(500).json({ message: error.message });
+	}
+  };
+  
 
 export const getAllPaymentDetails = async (req, res) => {
   const userId = req.user.userId;
@@ -804,7 +806,7 @@ export const createStaff = async (req, res) => {
       name: capitalizeEachWord(staffName),
       contact: contactNumber,
       email: email,
-      gender: gender.toLowerCase() || "male",
+      gender: gender || "Male",
       photoUrl: picUrl,
       address: {
         areaDetails: address,
@@ -818,8 +820,8 @@ export const createStaff = async (req, res) => {
       idproof: {
         type: idProofType,
         number: idProofNumber,
-        frontPicUrl: idProofFront,
-        backPicUrl: idProofBack,
+        // frontPicUrl: idProofFront,
+        // backPicUrl: idProofBack,
       },
       emergencyContact: {
         name: capitalizeEachWord(emergencyContactName),
