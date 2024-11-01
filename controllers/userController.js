@@ -694,7 +694,9 @@ export const getAllPaymentDetails = async (req, res) => {
   try {
     const payments = await PaymentDetail.find({ belongsTo: userId })
       .sort({ amountPaidOn: 1 })
-      .populate("amountPaidBy");
+      .populate("amountPaidBy")
+      .populate("belongsTo");
+      
     if (!payments) {
       return res
         .status(404)
